@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: springboot
+
+# 在这里加下面这段，修改端口
+server:
+  port: 8081
