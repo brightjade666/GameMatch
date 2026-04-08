@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>完善资料</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .edit-page {
+            max-width: 900px;
+            margin: 40px auto;
+            display: flex;
+            gap: 40px;
+            background: #fff;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .edit-left {
+            flex: 1;
+            text-align: left;
+        }
+
+        .edit-right {
+            flex: 1;
+            border-left: 1px solid #eee;
+            padding-left: 40px;
+        }
+
+        .req {
+            color: red;
+            margin-left: 4px;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-size: 14px;
+                color: #666;
+            }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .avatar-edit {
+            width: 150px;
+            height: 150px;
+            border-radius: 15px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px dashed #ccc;
+        }
+
+        .btn-submit {
+            padding: 12px 20px;
+            background: #0078d4;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-cancel {
+            padding: 12px 20px;
+            background: #eee;
+            color: #33px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="edit-page">
+        <div class="edit-left">
+            <div class="form-group">
+                <label>点击更换头像</label>
+                <input type="file" id="ipt-file" accept="image/*" style="display:none" onchange="handleFile(event)">
+                <img id="ipt-avatar-pre" class="avatar-edit" onclick="document.getElementById('ipt-file').click()">
+            </div>
+            <div class="form-group">
+                <label>账号名称 <span class="req">*</span></label>
+                <input type="text" id="ipt-nick" class="form-control" placeholder="请输入昵称">
+            </div>
+            <div class="form-group">
+                <label>个人简介</label>
+                <textarea id="ipt-intro" class="form-control" style="height:120px;" placeholder="向大家介绍一下你自己吧"></textarea>
+            </div>
+        </div>
+        <div class="edit-right">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>性别 <span class="req">*</span></label>
+                    <select id="ipt-gender" class="form-control">
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>年龄 <span class="req">*</span></label>
+                    <input type="number" id="ipt-age" class="form-control" placeholder="输入年龄">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>常玩游戏 <span class="req">*</span></label>
+                <select id="ipt-game-select" class="form-control" onchange="checkOtherGame(this.value)">
+                    <option value="">-- 请选择游戏 --</option>
+                    <option value="王者荣耀">王者荣耀</option>
+                    <option value="英雄联盟">英雄联盟</option>
+                    <option value="和平精英">和平精英</option>
+                    <option value="原神">原神</option>
+                    <option value="其他">其他...</option>
+                </select>
+                <input type="text" id="ipt-game-other" class="form-control" style="display:none; margin-top:10px;" placeholder="请输入游戏名称">
+            </div>
+
+            <!-- 新增三项：性格 / 游玩时间 / 匹配需求（必填） -->
+            <div class="form-group">
+                <label>性格 <span class="req">*</span></label>
+                <select id="ipt-personality" class="form-control">
+                    <option value="">-- 选择性格 --</option>
+                    <option value="稳健">稳健</option>
+                    <option value="活泼">活泼</option>
+                    <option value="话痨">话痨</option>
+                    <option value="安静">安静</option>
+                    <option value="佛系">佛系</option>
+                    <option value="好胜">好胜</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>游玩时间 <span class="req">*</span></label>
+                <select id="ipt-playtime" class="form-control">
+                    <option value="">-- 选择时间段 --</option>
+                    <option value="白天">白天</option>
+                    <option value="晚上">晚上</option>
+                    <option value="深夜">深夜</option>
+                    <option value="周末">周末</option>
+                    <option value="随时">随时</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>匹配需求 <span class="req">*</span></label>
+                <select id="ipt-matchneed" class="form-control">
+                    <option value="">-- 选择需求 --</option>
+                    <option value="开黑上分">开黑上分</option>
+                    <option value="娱乐休闲">娱乐休闲</option>
+                    <option value="固定队友">固定队友</option>
+                    <option value="萌新带飞">萌新带飞</option>
+                    <option value="聊天交友">聊天交友</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>联系方式 <span class="req">*</span></label>
+                <input type="text" id="ipt-contact" class="form-control" placeholder="微信 / 游戏 ID">
+            </div>
+
+            <div style="margin-top: 30px; display: flex; gap: 15px;">
+                <button class="btn-submit" onclick="doSave()">保存修改</button>
+                <button class="btn-cancel" onclick="location.href='index.html'">取消</button>
+            </div>
+            <p style="font-size: 12px; color: #999; margin-top: 20px;">创建时间：<span id="txt-ctime"></span></p>
+        </div>
+    </div>
+
+    <script>
+        let userData = JSON.parse(localStorage.getItem('currentUser')) || {
+            user_id: "ID_" + Math.floor(Math.random() * 1000000),
+            nick: "新用户",
+            avatar: "",
+            gender: "男",
+            age: 18,
+            contact: "未填写",
+            game_name: "",
+            personality: "",
+            playtime: "",
+            matchneed: "",
+            introduction: "这个人很懒，什么都没写~",
+            role: "普通用户",
+            status: "正常",
+            create_time: new Date().toLocaleDateString(),
+            update_time: "从未更新"
+        };
+        let currentAvatar = userData.avatar;
+
+        function init() {
+            document.getElementById('ipt-avatar-pre').src = userData.avatar || 'https://via.placeholder.com/150';
+            document.getElementById('ipt-nick').value = userData.nick || '';
+            document.getElementById('ipt-intro').value = userData.introduction || '这个人很懒，什么都没写~';
+            document.getElementById('ipt-gender').value = userData.gender || '男';
+            document.getElementById('ipt-age').value = userData.age || '';
+            document.getElementById('ipt-contact').value = userData.contact || '';
+            document.getElementById('txt-ctime').innerText = userData.create_time || '';
+
+            // 性格
+            document.getElementById('ipt-personality').value = userData.personality || '';
+            // 游玩时间
+            document.getElementById('ipt-playtime').value = userData.playtime || '';
+            // 匹配需求
+            document.getElementById('ipt-matchneed').value = userData.matchneed || '';
+
+            const games = ["王者荣耀", "英雄联盟", "和平精英", "原神"];
+            if (games.includes(userData.game_name)) {
+                document.getElementById('ipt-game-select').value = userData.game_name;
+            } else if (userData.game_name) {
+                document.getElementById('ipt-game-select').value = "其他";
+                document.getElementById('ipt-game-other').style.display = "block";
+                document.getElementById('ipt-game-other').value = userData.game_name;
+            }
+        }
+
+        function checkOtherGame(val) {
+            document.getElementById('ipt-game-other').style.display = (val === '其他') ? "block" : "none";
+        }
+
+        async function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async () => {
+                currentAvatar = reader.result;
+                document.getElementById('ipt-avatar-pre').src = currentAvatar;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function doSave() {
+            const gameSel = document.getElementById('ipt-game-select').value;
+            const gameOther = document.getElementById('ipt-game-other').value;
+
+            const personality = document.getElementById('ipt-personality').value;
+            const playtime = document.getElementById('ipt-playtime').value;
+            const matchneed = document.getElementById('ipt-matchneed').value;
+
+            const updated = {
+                ...userData,
+                nick: document.getElementById('ipt-nick').value.trim(),
+                gender: document.getElementById('ipt-gender').value,
+                age: document.getElementById('ipt-age').value,
+                contact: document.getElementById('ipt-contact').value.trim(),
+                game_name: (gameSel === '其他') ? gameOther : gameSel,
+                personality: personality,
+                playtime: playtime,
+                matchneed: matchneed,
+                introduction: document.getElementById('ipt-intro').value,
+                avatar: currentAvatar,
+                update_time: new Date().toLocaleString()
+            };
+
+            // 必填校验
+            if (!updated.nick || !updated.age || !updated.contact || !updated.game_name ||
+                !updated.personality || !updated.playtime || !updated.matchneed) {
+                alert("请填齐所有必填项！");
+                return;
+            }
+
+            localStorage.setItem('currentUser', JSON.stringify(updated));
+            alert("资料已更新！");
+            location.href = 'index.html';
+        }
+
+        init();
+    </script>
+</body>
+</html>

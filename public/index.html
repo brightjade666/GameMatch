@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>组队社区</title>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+</head>
+<body>
+    <header>
+        <div class="nav-links">
+            <span onclick="switchP('home')" id="n-home" class="active">主页</span>
+            <span onclick="switchP('profile')" id="n-profile">我的</span>
+        </div>
+        <div class="user-info-nav" onclick="switchP('profile')">
+            <img id="nav-avatar" src="">
+            <span id="nav-nick">...</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <section id="p-home">
+            <div class="grid" id="home-list"></div>
+        </section>
+
+        <section id="p-profile" style="display:none;">
+            <div class="user-display-card" style="display: flex; background: #fff; padding: 25px; border-radius: 15px; gap: 30px; margin-bottom: 20px;">
+                <div style="flex: 1;">
+                    <div style="position: relative; display: inline-block;">
+                        <img id="info-avatar" src="" style="width:120px; height:120px; border-radius:15px; object-fit: cover;">
+                        <div id="status-tag" style="display:none; position: absolute; top:0; left:0; background:red; color:#fff; font-size:12px; padding:2px 8px; border-radius:15px 0 15px 0;">已禁用</div>
+                    </div>
+                    <h2 id="info-nick" style="margin:10px 0 5px 0;"></h2>
+                    <p id="info-bio" style="font-size:13px; color:#666; margin:0; line-height:1.4;"></p>
+                </div>
+                <div style="flex: 1; border-left: 1px solid #eee; padding-left: 30px; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <p style="margin: 5px 0;"><strong>用户 ID:</strong> <span id="info-uid" style="color:var(--primary)"></span></p>
+                        <p style="margin: 5px 0;"><strong>更新时间:</strong> <span id="info-utime" style="font-size:13px; color:#999;"></span></p>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top: 15px;">
+                        <button class="btn-s" style="background:var(--primary); flex:1;" onclick="location.href='user.html'">编辑资料</button>
+                        <button class="btn-s" style="background:var(--success); flex:1;" onclick="location.href='create-team.html'">发起组队</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 我的队伍 / 消息 tab -->
+            <div style="background:#fff; padding:20px; border-radius:15px;">
+                <div style="display:flex; margin-bottom:15px;">
+                    <button id="t-teams" class="tab-btn active-tab" onclick="switchTab('teams')">我的队伍</button>
+                    <button id="t-msgs" class="tab-btn" onclick="switchTab('msgs')">我的消息</button>
+                </div>
+                <div id="tab-content"></div>
+            </div>
+        </section>
+    </div>
+
+    <div id="detail-modal" class="modal-overlay" onclick="closeDetail(event)">
+        <div class="modal" id="detail-content" style="max-width:600px;"></div>
+    </div>
+
+
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>发起组队</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* 页面专属美化样式 */
+        body {
+            background: #f4f7f9;
+        }
+
+        .create-container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+
+        .page-title {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 24px;
+        }
+
+        /* 封面上传框美化 */
+        .upload-box {
+            width: 120px;
+            height: 120px;
+            border: 2px dashed #0078d4;
+            border-radius: 16px;
+            margin: 0 auto 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            background: #f0f8ff;
+            color: #0078d4;
+            transition: all 0.3s ease;
+        }
+
+            .upload-box:hover {
+                background: #e6f2ff;
+                transform: scale(1.02);
+            }
+
+            .upload-box img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                position: absolute;
+                top: 0;
+                left: 0;
+                display: none;
+            }
+
+        /* 输入框美化 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+                color: #555;
+                font-size: 14px;
+            }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+
+            .form-control:focus {
+                border-color: #0078d4;
+                outline: none;
+                background: #fff;
+                box-shadow: 0 0 0 4px rgba(0,120,212,0.1);
+            }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* 按钮美化 */
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #0078d4, #005a9e);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,120,212,0.3);
+            margin-top: 10px;
+        }
+
+            .btn-submit:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0,120,212,0.4);
+            }
+
+        .btn-cancel {
+            width: 100%;
+            padding: 12px;
+            background: none;
+            border: none;
+            color: #999;
+            margin-top: 15px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+            .btn-cancel:hover {
+                color: #666;
+                text-decoration: underline;
+            }
+    </style>
+</head>
+<body>
+    <div class="create-container">
+        <h2 class="page-title">🚀 发起新队伍</h2>
+
+        <div class="upload-box" onclick="document.getElementById('team-cover-input').click()">
+            <img id="team-cover-pre" src="">
+            <span id="cover-plus-icon" style="font-size: 28px; font-weight: bold;">+</span>
+            <span id="cover-text" style="font-size: 13px; margin-top: 5px;">上传封面(选填)</span>
+        </div>
+        <input type="file" id="team-cover-input" accept="image/*" onchange="handleCover(event)" style="display: none;">
+
+        <div class="form-group">
+            <label>队伍名称</label>
+            <input type="text" id="team-title" class="form-control" placeholder="给队伍起个响亮的名字（必填）">
+        </div>
+        <div class="form-group">
+            <label>招募需求</label>
+            <input type="text" id="team-need" class="form-control" placeholder="例如：缺2人，熟悉Vue（选填）">
+        </div>
+        <div class="form-group">
+            <label>项目简介</label>
+            <textarea id="team-desc" class="form-control" placeholder="详细介绍一下你的项目和目标，吸引更多伙伴..."></textarea>
+        </div>
+
+        <button class="btn-submit" onclick="doPublish()">立 即 发 布</button>
+        <button class="btn-cancel" onclick="location.href='index.html'">取消并返回大厅</button>
+    </div>
+
+   <script>
+    let coverBase64 = "";
+
+    // 核心工具：压缩图片（保持与主页一致，解决10MB报错）
+    async function compressImage(base64Str) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.src = base64Str;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxSide = 800;
+                if (width > maxSide || height > maxSide) {
+                    if (width > height) { height = (maxSide / width) * height; width = maxSide; }
+                    else { width = (maxSide / height) * width; height = maxSide; }
+                }
+                canvas.width = width; canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', 0.7));
+            };
+        });
+    }
+
+    async function handleCover(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 10 * 1024 * 1024) return alert("图片不能超过 10MB 哦！");
+            const reader = new FileReader();
+            reader.onload = async () => {
+                // 压缩处理
+                const compressed = await compressImage(reader.result);
+                coverBase64 = compressed;
+                document.getElementById('team-cover-pre').src = compressed;
+                document.getElementById('team-cover-pre').style.display = 'block';
+                document.getElementById('cover-text').style.display = 'none';
+                document.querySelector('.upload-box').style.border = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function doPublish() {
+        const title = document.getElementById('team-title').value.trim();
+        if (!title) return alert("队伍名称不能为空哦！");
+
+        const userData = JSON.parse(localStorage.getItem('currentUser')) || { nick: '访客', avatar: '' };
+        const allTeams = JSON.parse(localStorage.getItem('allTeams')) || [];
+
+        const newTeam = {
+            id: Date.now(),
+            title: title,
+            avatar: coverBase64, 
+            leader: userData.nick,
+            need: document.getElementById('team-need').value || "暂无具体要求",
+            desc: document.getElementById('team-desc').value || "队长很神秘，什么都没留下。",
+            comments: []
+        };
+
+        allTeams.unshift(newTeam);
+        localStorage.setItem('allTeams', JSON.stringify(allTeams));
+
+        const myTeams = JSON.parse(localStorage.getItem('myTeams')) || [];
+        myTeams.push({ id: newTeam.id, name: title, role: "队长" });
+        localStorage.setItem('myTeams', JSON.stringify(myTeams));
+
+        alert("发布成功！");
+        location.href = 'index.html';
+    }
+</script>
+</body>
+</html>
