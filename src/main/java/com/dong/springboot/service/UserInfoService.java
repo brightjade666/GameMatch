@@ -62,36 +62,63 @@ public class UserInfoService {
         return vo;
     }
     @Transactional
+
     public void updateUserInfo(UserInfoVO vo) {
         User user = userRepository.findById(vo.getUser_id()).orElse(null);
         if (user == null) return;
 
-        // ========== 头像只存路径 ==========
+        // ========== 1. 处理头像（不存Base64） ==========
         String avatar = vo.getAvatar();
         if (avatar != null && avatar.startsWith("data:image")) {
             avatar = null;
         }
-        user.setAvatar(vo.getAvatar());
+        user.setAvatar(avatar);
+
+        // ========== 2. 保存基础信息 ==========
         user.setGender(vo.getGender());
         user.setAge(vo.getAge());
         user.setContact(vo.getContact());
         user.setIntroduction(vo.getIntroduction());
+
+        // ======================================================
+        // ========== 【核心】根据游戏名 game_name 查 game_id ==========
+        // ======================================================
+        String gameName = vo.getGame_name();
+        Integer gameId = null;
+
+        if (gameName != null && !gameName.isBlank()) {
+            // 根据游戏名查游戏
+            Game game = gameRepository.findByGameName(gameName);
+
+            // 如果不存在，自动创建（可选）
+            if (game == null) {
+                game = new Game();
+                game.setGameName(gameName);
+                game = gameRepository.save(game);
+            }
+
+            gameId = game.getGameId();
+            user.setGameId(gameId); // 同时更新 user 表的 game_id
+        }
+
         userRepository.save(user);
 
+        // ========== 3. 保存到 user_profile ==========
         UserProfile profile = userProfileRepository.findByUserId(vo.getUser_id());
         if (profile == null) {
             profile = new UserProfile();
             profile.setUserId(vo.getUser_id());
         }
 
-        // ======================
-        // 【必须加这一行！】
-        // ======================
-        profile.setGameId(user.getGameId());  // <-- 加这行！
+        // 把查到的 gameId 存入 profile !!!
+        if (gameId != null) {
+            profile.setGameId(gameId);
+        }
 
         profile.setPersonality(vo.getPersonality());
         profile.setPlayTime(vo.getPlaytime());
         profile.setTeamRequirement(vo.getMatchneed());
+
         userProfileRepository.save(profile);
     }
 }
