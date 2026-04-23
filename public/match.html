@@ -1,0 +1,159 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>匹配系统界面</title>
+    <style>
+        /* 页面整体布局 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            padding: 30px;
+            background-color: #f5f5f5;
+        }
+
+        /* 左右分栏容器 */
+        .container {
+            display: flex;
+            gap: 30px;
+            height: 80vh;
+        }
+
+        /* 左侧区域 */
+        .left-panel {
+            width: 260px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        /* 输入框标签 */
+        .input-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        /* 游戏ID输入框 */
+        #gameIdInput {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+            #gameIdInput:focus {
+                border-color: #409eff;
+            }
+
+        /* 开始匹配按钮样式 */
+        #matchBtn {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 16px;
+            background-color: #409eff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+            #matchBtn:hover {
+                background-color: #337ecc;
+            }
+
+        /* 右侧展示区域 */
+        .right-panel {
+            flex: 1;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        /* 匹配结果样式 */
+        .result-item {
+            padding: 12px;
+            margin: 10px 0;
+            background-color: #f0f7ff;
+            border-left: 4px solid #409eff;
+            border-radius: 4px;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧：输入框 + 按钮 -->
+        <div class="left-panel">
+            <div class="input-label">请输入游戏ID</div>
+            <input type="number" id="gameIdInput">
+
+            <button id="matchBtn">开始匹配</button>
+        </div>
+
+        <!-- 右侧：匹配结果展示区 -->
+        <div class="right-panel" id="resultArea">
+        </div>
+    </div>
+
+    <script>
+        const matchBtn = document.getElementById('matchBtn');
+        const resultArea = document.getElementById('resultArea');
+        const gameIdInput = document.getElementById('gameIdInput');
+
+       async function getMatchUserList(gameId) {
+    try {
+        // 👇 把 8080 改成 8081，和后端端口一致
+        const res = await fetch(`http://localhost:8081/user/match?gameId=${gameId}`);
+        const result = await res.json();
+        return result.data || [];
+    } catch (error) {
+        alert("请先启动后端！");
+        console.error(error);
+        return [];
+    }
+}
+
+        matchBtn.addEventListener('click', async function() {
+            const gameId = gameIdInput.value.trim();
+            if (!gameId) {
+                alert('请输入游戏ID！');
+                return;
+            }
+
+            resultArea.innerHTML = '';
+            const userIdList = await getMatchUserList(gameId);
+
+            if (userIdList.length === 0) {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.textContent = `游戏ID ${gameId} 未匹配到用户`;
+                resultArea.appendChild(div);
+                return;
+            }
+
+            userIdList.forEach(userId => {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.textContent = `游戏ID ${gameId} 匹配到用户ID：${userId}`;
+                resultArea.appendChild(div);
+            });
+        });
+    </script>
+</body>
+</html>

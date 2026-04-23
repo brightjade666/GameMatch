@@ -7,7 +7,9 @@
     <style>
         /* 页面专属美化样式 */
         body {
-            background: #f4f7f9;
+            background: #fff; /* ✅ 这里恢复成白色，去掉橘色 */
+            margin: 0;
+            padding: 20px;
         }
 
         .create-container {
@@ -145,7 +147,7 @@
             <span id="cover-plus-icon" style="font-size: 28px; font-weight: bold;">+</span>
             <span id="cover-text" style="font-size: 13px; margin-top: 5px;">上传封面(选填)</span>
         </div>
-        <input type="file" id="team-cover-input" accept="image/*" onchange="handleCover(event)" style="display: none;">
+        <input type="file" id="team-cover-input" accept="image/*" onchange="previewCover(event)" style="display: none;">
 
         <div class="form-group">
             <label>队伍名称</label>
@@ -161,79 +163,85 @@
         </div>
 
         <button class="btn-submit" onclick="doPublish()">立 即 发 布</button>
-        <button class="btn-cancel" onclick="location.href='index.html'">取消并返回大厅</button>
+        <button class="btn-cancel" onclick="location.href='index.html'">取消</button>
     </div>
 
-   <script>
-    let coverBase64 = "";
+    <script>
+        let coverPath = "";
 
-    // 核心工具：压缩图片（保持与主页一致，解决10MB报错）
-    async function compressImage(base64Str) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.src = base64Str;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-                const maxSide = 800;
-                if (width > maxSide || height > maxSide) {
-                    if (width > height) { height = (maxSide / width) * height; width = maxSide; }
-                    else { width = (maxSide / height) * width; height = maxSide; }
-                }
-                canvas.width = width; canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg', 0.7));
-            };
-        });
-    }
+        // 上传图片 + 预览
+        async function previewCover(e) {
+            const file = e.target.files[0];
+            if (!file) return;
 
-    async function handleCover(e) {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 10 * 1024 * 1024) return alert("图片不能超过 10MB 哦！");
-            const reader = new FileReader();
-            reader.onload = async () => {
-                // 压缩处理
-                const compressed = await compressImage(reader.result);
-                coverBase64 = compressed;
-                document.getElementById('team-cover-pre').src = compressed;
-                document.getElementById('team-cover-pre').style.display = 'block';
-                document.getElementById('cover-text').style.display = 'none';
-                document.querySelector('.upload-box').style.border = 'none';
-            };
-            reader.readAsDataURL(file);
+            let formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                let res = await fetch("http://localhost:8081/file/upload", {
+                    method: "POST",
+                    body: formData
+                });
+
+                let path = await res.text();
+                console.log("返回路径：", path);
+
+                coverPath = path;
+                let img = document.getElementById("team-cover-pre");
+                img.src = "http://localhost:8081" + coverPath;
+                img.style.display = "block";
+
+                document.getElementById("cover-plus-icon").style.display = "none";
+                document.getElementById("cover-text").style.display = "none";
+            } catch (err) {
+                console.error(err);
+                alert("上传失败");
+            }
         }
-    }
 
-    function doPublish() {
-        const title = document.getElementById('team-title').value.trim();
-        if (!title) return alert("队伍名称不能为空哦！");
+        // 发布队伍
+        async function doPublish() {
+            const title = document.getElementById("team-title").value.trim();
+            if (!title) {
+                alert("请输入队伍名称！");
+                return;
+            }
 
-        const userData = JSON.parse(localStorage.getItem('currentUser')) || { nick: '访客', avatar: '' };
-        const allTeams = JSON.parse(localStorage.getItem('allTeams')) || [];
+            const user = JSON.parse(localStorage.getItem("currentUser"));
+            if (!user || !user.user_id) {
+                alert("请先登录！");
+                return;
+            }
 
-        const newTeam = {
-            id: Date.now(),
-            title: title,
-            avatar: coverBase64, 
-            leader: userData.nick,
-            need: document.getElementById('team-need').value || "暂无具体要求",
-            desc: document.getElementById('team-desc').value || "队长很神秘，什么都没留下。",
-            comments: []
-        };
+            const postData = {
+                gameId: 1,
+                teamName: title,
+                teamNeed: document.getElementById("team-need").value.trim() || "无",
+                teamDesc: document.getElementById("team-desc").value.trim() || "无",
+                teamCover: coverPath || "",
+                leaderId: user.user_id,
+                needNum: 5,
+                currentNum: 1
+            };
 
-        allTeams.unshift(newTeam);
-        localStorage.setItem('allTeams', JSON.stringify(allTeams));
+            try {
+                let res = await fetch("http://localhost:8081/team/publish", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(postData)
+                });
 
-        const myTeams = JSON.parse(localStorage.getItem('myTeams')) || [];
-        myTeams.push({ id: newTeam.id, name: title, role: "队长" });
-        localStorage.setItem('myTeams', JSON.stringify(myTeams));
-
-        alert("发布成功！");
-        location.href = 'index.html';
-    }
-</script>
+                let result = await res.json();
+                if (result.code === 200) {
+                    alert("发布成功！");
+                    location.href = "index.html";
+                } else {
+                    alert("失败：" + result.msg);
+                }
+            } catch (e) {
+                alert("服务器未启动！");
+            }
+        }
+    </script>
 </body>
 </html>

@@ -128,7 +128,6 @@
                 <input type="text" id="ipt-game-other" class="form-control" style="display:none; margin-top:10px;" placeholder="请输入游戏名称">
             </div>
 
-            <!-- 新增三项：性格 / 游玩时间 / 匹配需求（必填） -->
             <div class="form-group">
                 <label>性格 <span class="req">*</span></label>
                 <select id="ipt-personality" class="form-control">
@@ -180,99 +179,122 @@
     </div>
 
     <script>
-        let userData = JSON.parse(localStorage.getItem('currentUser')) || {
-            user_id: "ID_" + Math.floor(Math.random() * 1000000),
-            nick: "新用户",
-            avatar: "",
-            gender: "男",
-            age: 18,
-            contact: "未填写",
-            game_name: "",
-            personality: "",
-            playtime: "",
-            matchneed: "",
-            introduction: "这个人很懒，什么都没写~",
-            role: "普通用户",
-            status: "正常",
-            create_time: new Date().toLocaleDateString(),
-            update_time: "从未更新"
-        };
-        let currentAvatar = userData.avatar;
+        let userData = {};
+        let currentAvatar = "";
 
-        function init() {
-            document.getElementById('ipt-avatar-pre').src = userData.avatar || 'https://via.placeholder.com/150';
-            document.getElementById('ipt-nick').value = userData.nick || '';
-            document.getElementById('ipt-intro').value = userData.introduction || '这个人很懒，什么都没写~';
-            document.getElementById('ipt-gender').value = userData.gender || '男';
-            document.getElementById('ipt-age').value = userData.age || '';
-            document.getElementById('ipt-contact').value = userData.contact || '';
-            document.getElementById('txt-ctime').innerText = userData.create_time || '';
+        async function init() {
+            const local = JSON.parse(localStorage.getItem('currentUser')) || {};
+            const userId = local.user_id;
 
-            // 性格
-            document.getElementById('ipt-personality').value = userData.personality || '';
-            // 游玩时间
-            document.getElementById('ipt-playtime').value = userData.playtime || '';
-            // 匹配需求
-            document.getElementById('ipt-matchneed').value = userData.matchneed || '';
+            if (!userId) {
+                alert("请先登录");
+                return;
+            }
 
-            const games = ["王者荣耀", "英雄联盟", "和平精英", "原神"];
-            if (games.includes(userData.game_name)) {
-                document.getElementById('ipt-game-select').value = userData.game_name;
-            } else if (userData.game_name) {
-                document.getElementById('ipt-game-select').value = "其他";
-                document.getElementById('ipt-game-other').style.display = "block";
-                document.getElementById('ipt-game-other').value = userData.game_name;
+            try {
+                const res = await fetch("http://localhost:8081/user/info?userId=" + userId);
+                const result = await res.json();
+                userData = result.data || {};
+
+                currentAvatar = userData.avatar || "";
+
+                document.getElementById('ipt-avatar-pre').src = currentAvatar ? "http://localhost:8081" + currentAvatar : 'https://via.placeholder.com/150';
+                document.getElementById('ipt-nick').value = userData.nick || '';
+                document.getElementById('ipt-intro').value = userData.introduction || '';
+                document.getElementById('ipt-gender').value = userData.gender == 1 ? "男" : "女";
+                document.getElementById('ipt-age').value = userData.age || '';
+                document.getElementById('ipt-contact').value = userData.contact || '';
+                document.getElementById('txt-ctime').innerText = userData.create_time || '';
+
+                document.getElementById('ipt-personality').value = userData.personality || '';
+                document.getElementById('ipt-playtime').value = userData.playtime || '';
+                document.getElementById('ipt-matchneed').value = userData.matchneed || '';
+
+                const games = ["王者荣耀", "英雄联盟", "和平精英", "原神"];
+                const game = userData.game_name || "";
+
+                if (games.includes(game)) {
+                    document.getElementById('ipt-game-select').value = game;
+                } else if (game) {
+                    document.getElementById('ipt-game-select').value = "其他";
+                    document.getElementById('ipt-game-other').style.display = "block";
+                    document.getElementById('ipt-game-other').value = game;
+                }
+
+            } catch (e) {
+                console.error("加载失败", e);
             }
         }
 
         function checkOtherGame(val) {
-            document.getElementById('ipt-game-other').style.display = (val === '其他') ? "block" : "none";
+            document.getElementById('ipt-game-other').style.display = val === "其他" ? "block" : "none";
         }
 
+        // ======================
+        // 【已修复：选择图片自动上传】
+        // ======================
         async function handleFile(e) {
             const file = e.target.files[0];
             if (!file) return;
-            const reader = new FileReader();
-            reader.onload = async () => {
-                currentAvatar = reader.result;
-                document.getElementById('ipt-avatar-pre').src = currentAvatar;
-            };
-            reader.readAsDataURL(file);
+
+            let fd = new FormData();
+            fd.append("file", file);
+
+            // 上传到你现有的接口！
+            let res = await fetch("http://localhost:8081/file/upload", {
+                method: "POST",
+                body: fd
+            });
+
+            // 拿到真实路径
+            currentAvatar = await res.text();
+            document.getElementById('ipt-avatar-pre').src = "http://localhost:8081" + currentAvatar;
         }
 
-        function doSave() {
+        // ======================
+        // 【已修复：提交真实路径】
+        // ======================
+        async function doSave() {
             const gameSel = document.getElementById('ipt-game-select').value;
             const gameOther = document.getElementById('ipt-game-other').value;
 
-            const personality = document.getElementById('ipt-personality').value;
-            const playtime = document.getElementById('ipt-playtime').value;
-            const matchneed = document.getElementById('ipt-matchneed').value;
-
             const updated = {
-                ...userData,
+                user_id: userData.user_id,
                 nick: document.getElementById('ipt-nick').value.trim(),
-                gender: document.getElementById('ipt-gender').value,
+                gender: document.getElementById('ipt-gender').value === "男" ? 1 : 0,
                 age: document.getElementById('ipt-age').value,
                 contact: document.getElementById('ipt-contact').value.trim(),
-                game_name: (gameSel === '其他') ? gameOther : gameSel,
-                personality: personality,
-                playtime: playtime,
-                matchneed: matchneed,
+                game_name: gameSel === "其他" ? gameOther : gameSel,
+                game_rank: userData.game_rank,
+                personality: document.getElementById('ipt-personality').value,
+                playtime: document.getElementById('ipt-playtime').value,
+                matchneed: document.getElementById('ipt-matchneed').value,
                 introduction: document.getElementById('ipt-intro').value,
-                avatar: currentAvatar,
-                update_time: new Date().toLocaleString()
+                avatar: currentAvatar
             };
 
-            // 必填校验
             if (!updated.nick || !updated.age || !updated.contact || !updated.game_name ||
                 !updated.personality || !updated.playtime || !updated.matchneed) {
-                alert("请填齐所有必填项！");
+                alert("请填写所有必填项！");
                 return;
             }
 
-            localStorage.setItem('currentUser', JSON.stringify(updated));
-            alert("资料已更新！");
-            location.href = 'index.html';
+            try {
+                const res = await fetch("http://localhost:8081/user/update", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(updated)
+                });
+
+                const result = await res.json();
+                alert(result.msg);
+
+                localStorage.setItem('currentUser', JSON.stringify(updated));
+                location.href = "index.html";
+            } catch (e) {
+                console.error(e);
+                alert("保存失败");
+            }
         }
 
         init();
