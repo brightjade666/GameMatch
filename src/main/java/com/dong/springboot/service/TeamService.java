@@ -1,18 +1,13 @@
 package com.dong.springboot.service;
 
-import com.dong.springboot.dao.TeamCommentRepository;
-import com.dong.springboot.dao.TeamMemberRepository;
-import com.dong.springboot.dao.TeamRecruitRepository;
-import com.dong.springboot.dao.UserRepository;
-import com.dong.springboot.entity.TeamComment;
-import com.dong.springboot.entity.TeamMember;
-import com.dong.springboot.entity.TeamRecruit;
-import com.dong.springboot.entity.User;
+import com.dong.springboot.dao.*;
+import com.dong.springboot.entity.*;
 import com.dong.springboot.vo.CommentVO;
 import com.dong.springboot.vo.TeamDetailVO;
 import com.dong.springboot.vo.TeamVO;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,15 +20,16 @@ public class TeamService {
     private final UserRepository userRepo;
     private final TeamCommentRepository commentRepo;
     private final TeamMemberRepository teamMemberRepo;
-
+    private final TeamApplyRepository teamApplyRepo;
 
     public TeamService(TeamRecruitRepository teamRecruitRepo,
                        UserRepository userRepo,
-                       TeamCommentRepository commentRepo,TeamMemberRepository teamMemberRepo) {
+                       TeamCommentRepository commentRepo,TeamMemberRepository teamMemberRepo,TeamApplyRepository teamApplyRepo ) {
         this.teamRecruitRepo = teamRecruitRepo;
         this.userRepo = userRepo;
         this.commentRepo = commentRepo;
         this.teamMemberRepo = teamMemberRepo;
+        this.teamApplyRepo = teamApplyRepo;
     }
 
     // 招募列表
@@ -92,10 +88,22 @@ public class TeamService {
 
 
     // ================== 发布队伍 ==================
+
     public void publish(TeamRecruit team) {
         team.setStatus(1);
         team.setCurrentNum(1);
+        team.setCreateTime(LocalDateTime.now());
+        // 先保存队伍，获取自增的 teamId
         teamRecruitRepo.save(team);
+
+        // ==============================================
+        // 🔥 关键：创建队伍后，自动把队长加入成员表
+        // ==============================================
+        TeamMember member = new TeamMember();
+        member.setTeamId(team.getTeamId());   // 刚创建的队伍ID
+        member.setUserId(team.getLeaderId()); // 队长ID
+        member.setJoinTime(LocalDateTime.now());
+        teamMemberRepo.save(member);
     }
     // ================== 我的队伍显示 ==================
     public List<TeamVO> getMyTeamsWithMembers(Integer userId) {
@@ -127,5 +135,23 @@ public class TeamService {
         }
 
         return result;
+    }
+    // ================== 同意入队申请 ==================
+    public void agreeApply(Integer applyId) {
+        // 这里是 TeamApply，不是 TeamMember！
+        TeamApply apply = teamApplyRepo.findById(applyId).orElse(null);
+        if (apply == null) return;
+
+        apply.setStatus(1); // 1=已同意
+        teamApplyRepo.save(apply);
+    }
+
+    // ================== 拒绝入队申请 ==================
+    public void rejectApply(Integer applyId) {
+        TeamApply apply = teamApplyRepo.findById(applyId).orElse(null);
+        if (apply == null) return;
+
+        apply.setStatus(2); // 2=已拒绝
+        teamApplyRepo.save(apply);
     }
 }

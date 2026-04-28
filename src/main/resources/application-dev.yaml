@@ -3,20 +3,20 @@ server:
 
 spring:
   datasource:
-    # 重点修改：把 sprintpro_db 改为 game_team_match
-    url: jdbc:mysql://localhost:3306/game_team_match?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
+    # 已改回 sprintpro_db，并且加上了修复权限的参数
+    url: jdbc:mysql://localhost:3306/sprintpro_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
     username: root
-    password: "@XDY061210"
+    password: "200618665"
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-  # ===================== JPA 配置（自动建表、自动SQL） =====================
+  # ===================== JPA 配置 =====================
   jpa:
     hibernate:
-      ddl-auto: update  # 自动创建/更新表（超级重要）
-    show-sql: true      # 控制台显示执行的SQL
+      ddl-auto: update
+    show_sql: true
     properties:
       hibernate:
-        format_sql: true # 格式化SQL，好看易懂
+        format_sql: true
 
 logging:
   level:
