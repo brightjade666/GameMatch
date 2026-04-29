@@ -342,6 +342,14 @@
     </div>
 
     <script>
+        // match.html 的 <script> 最前面插入
+        window.onload = function () {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user || !user.user_id) {
+                showToast("请先登录", "error");
+                setTimeout(() => { location.href = 'login.html'; }, 1500);
+            }
+        };
         // 独立 Toast
         function showToast(msg, type = 'info') {
             const toast = document.createElement('div');

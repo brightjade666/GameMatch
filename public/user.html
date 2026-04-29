@@ -294,17 +294,28 @@
         </div>
     </div>
 
+
     <script>
-        // 独立 Toast（右上角）
-        function showToast(msg, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = 'toast toast-' + type;
-            toast.textContent = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.classList.add('toast-hidden');
-                setTimeout(() => toast.remove(), 400);
-            }, 2500);
+            // Toast 函数
+            function showToast(msg, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = 'toast toast-' + type;
+                toast.textContent = msg || '操作完成';
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.classList.add('toast-hidden');
+                    setTimeout(() => toast.remove(), 400);
+                }, 2500);
+            }
+
+        // 检查登录
+        function requireLogin() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user || !user.user_id) {
+                showToast("请先登录", "error");
+                return false;
+            }
+            return true;
         }
 
         let userData = {};
@@ -313,9 +324,12 @@
         let isSaving = false;
 
         async function init() {
+            if (!requireLogin()) {
+                setTimeout(() => { location.href = 'login.html'; }, 1500);
+                return;
+            }
             const local = JSON.parse(localStorage.getItem('currentUser')) || {};
             const userId = local.user_id;
-            if (!userId) { showToast("请先登录", "error"); return; }
             try {
                 const res = await fetch("http://localhost:8081/user/info?userId=" + userId);
                 const result = await res.json();
@@ -419,12 +433,11 @@
         }
 
         async function doSave(fromCancel = false) {
-            // 如果没有修改，直接返回个人主页，无任何提示
+            if (!requireLogin()) return;   // 关键：未登录阻止保存
             if (!fromCancel && !hasChanges()) {
                 location.href = "index.html";
                 return;
             }
-
             if (isSaving) return;
             isSaving = true;
 
@@ -465,12 +478,9 @@
                     body: JSON.stringify(updated)
                 });
                 const result = await res.json();
-                showToast(result.msg, "success");
+                showToast(result.msg || "保存成功", "success");
                 localStorage.setItem('currentUser', JSON.stringify(updated));
-                // 无论是否由取消触发，保存后都返回主页
-                setTimeout(() => {
-                    location.href = "index.html";
-                }, 800);
+                setTimeout(() => { location.href = "index.html"; }, 800);
             } catch (e) {
                 console.error(e);
                 showToast("保存失败，网络错误", "error");

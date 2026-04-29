@@ -1,4 +1,6 @@
-﻿// 注入动画 & 弹窗样式
+﻿// script.js
+
+// ----- 注入动画 & 弹窗样式 -----
 (function addStyles() {
     const style = document.createElement('style');
     style.textContent = `
@@ -12,7 +14,6 @@
         .msg-item { animation: floatIn 0.4s ease-out; padding: 12px; border-bottom: 1px solid #eee; margin-bottom: 8px; background: #fafafa; border-radius: 6px; position: relative; }
         .view-btn { background: #0078d4; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer; margin-left: 8px; }
         .view-btn:hover { background: #005a9e; }
-        /* 弹出层样式 */
         .profile-modal {
             display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index:2000; align-items: center; justify-content: center;
         }
@@ -28,7 +29,6 @@
     `;
     document.head.appendChild(style);
 
-    // 全局弹窗容器
     const modal = document.createElement('div');
     modal.id = 'profileModal';
     modal.className = 'profile-modal';
@@ -48,14 +48,13 @@
     document.body.appendChild(modal);
 })();
 
-// ============== 以下为原有的全局变量与函数 ==============
-
+// ========== 全局状态与工具函数 ==========
 let userData = JSON.parse(localStorage.getItem('currentUser')) || {};
 
 function showToast(msg, type = 'info') {
     const toast = document.createElement('div');
     toast.className = 'toast toast-' + type;
-    toast.textContent = msg;
+    toast.textContent = msg || '操作完成';
     document.body.appendChild(toast);
     setTimeout(() => {
         toast.classList.add('toast-hidden');
@@ -78,16 +77,46 @@ function closeGlobalConfirm() {
     document.getElementById('globalConfirmModal').classList.remove('active');
 }
 
-function requireLogin() {
+// 登录状态检测
+function isLoggedIn() {
     const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (!user || !user.user_id) {
+    return user && user.user_id;
+}
+
+function requireLogin() {
+    if (!isLoggedIn()) {
         showToast("请先登录", "error");
         return false;
     }
     return true;
 }
 
-// 打开用户资料弹窗
+function goToIfLogin(url) {
+    if (requireLogin()) {
+        location.href = url;
+    }
+}
+
+// 刷新导航栏用户信息（未登录时显示默认）
+function updateNavUser() {
+    const stored = JSON.parse(localStorage.getItem('currentUser')) || {};
+    const avatarElem = document.getElementById('nav-avatar');
+    const nickElem = document.getElementById('nav-nick');
+    if (isLoggedIn()) {
+        let avatar = stored.avatar || "";
+        if (avatar && !avatar.startsWith("http")) {
+            avatar = "http://localhost:8081" + avatar;
+        }
+        if (!avatar) avatar = "https://ui-avatars.com/api/?name=" + encodeURIComponent(stored.nick || stored.username || "用户");
+        avatarElem.src = avatar;
+        nickElem.innerText = stored.nick || stored.username || '用户';
+    } else {
+        // 未登录显示默认图标
+        avatarElem.src = "https://ui-avatars.com/api/?name=未登录";
+        nickElem.innerText = "未登录";
+    }
+}
+// 查看用户资料弹窗
 async function viewProfile(userId) {
     try {
         const res = await fetch(`http://localhost:8081/user/publicInfo?userId=${userId}`);
@@ -111,7 +140,7 @@ window.closeProfile = function () {
     document.getElementById('profileModal').classList.remove('show');
 };
 
-// 主页渲染（不变）
+// ----- 主页渲染 -----
 async function renderHome() {
     try {
         const res = await fetch("http://localhost:8081/team/list");
@@ -132,7 +161,7 @@ async function renderHome() {
     }
 }
 
-// 队伍详情（不变）
+// ----- 队伍详情 & 申请 -----
 window.showDetail = async function (id) {
     if (!requireLogin()) return;
     const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -174,7 +203,6 @@ window.showDetail = async function (id) {
     document.getElementById('detail-modal').style.display = 'block';
 };
 
-// 申请加入（防止重复点击+重复申请）
 window.applyJoinTeam = async function (teamId) {
     if (!requireLogin()) return;
     const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -200,9 +228,9 @@ window.applyJoinTeam = async function (teamId) {
         });
         const result = await res.json();
         if (result.code === 200) {
-            showToast(result.msg, 'success');
+            showToast(result.msg || '申请成功', 'success');
         } else {
-            showToast(result.msg || '请等待队长审核', 'error');
+            showToast(result.msg || '申请失败', 'error');
         }
     } catch (e) {
         showToast('网络错误', 'error');
@@ -220,6 +248,7 @@ window.closeDetail = function (e) {
     }
 };
 
+// ----- 页面切换（已修改）-----
 window.switchP = function (p) {
     document.querySelectorAll('.nav-links span').forEach(s => s.classList.remove('active'));
     document.getElementById('n-' + p).classList.add('active');
@@ -229,21 +258,37 @@ window.switchP = function (p) {
     if (p === 'home') {
         renderHome();
     } else if (p === 'profile') {
-        userData = JSON.parse(localStorage.getItem('currentUser')) || userData;
-        let avatar = userData.avatar || "";
-        if (avatar && !avatar.startsWith("http")) avatar = "http://localhost:8081" + avatar;
-        if (!avatar) avatar = "https://ui-avatars.com/api/?name=" + encodeURIComponent(userData.nick || "用户");
-        document.getElementById('info-avatar').src = avatar;
-        document.getElementById('info-nick').innerText = userData.nick || userData.username;
-        document.getElementById('info-uid').innerText = userData.user_id;
-        document.getElementById('info-bio').innerText = userData.introduction || '';
-        document.getElementById('info-utime').innerText = userData.update_time || '';
+        // 读取最新登录状态
+        const stored = JSON.parse(localStorage.getItem('currentUser')) || {};
+        if (isLoggedIn()) {
+            // 已登录：展示真实信息（尝试从服务器刷新一次）
+            userData = stored;
+            let avatar = userData.avatar || "";
+            if (avatar && !avatar.startsWith("http")) avatar = "http://localhost:8081" + avatar;
+            if (!avatar) avatar = "https://ui-avatars.com/api/?name=" + encodeURIComponent(userData.nick || userData.username || "用户");
+            document.getElementById('info-avatar').src = avatar;
+            document.getElementById('info-nick').innerText = userData.nick || userData.username;
+            document.getElementById('info-uid').innerText = userData.user_id || '';
+            document.getElementById('info-bio').innerText = userData.introduction || '';
+            document.getElementById('info-utime').innerText = userData.update_time || '';
+        } else {
+            // ----- 未登录状态显示 -----
+            document.getElementById('info-avatar').src = "https://ui-avatars.com/api/?name=未登录";
+            document.getElementById('info-nick').innerText = "未登录";
+            document.getElementById('info-uid').innerText = "——";
+            document.getElementById('info-bio').innerText = "请先登录以查看个人信息";
+            document.getElementById('info-utime').innerText = "";
+        }
         switchTab('teams');
     }
 };
-
-// 修改后的消息展示
+// ----- 个人中心 Tab -----
 window.switchTab = async function (type) {
+    if (!requireLogin()) {
+        // 未登录则直接展示空白提示，不调用后端接口
+        document.getElementById('tab-content').innerHTML = "<p>请先登录后查看</p>";
+        return;
+    }
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
     document.getElementById('t-' + type).classList.add('active-tab');
     const tab = document.getElementById('tab-content');
@@ -258,12 +303,21 @@ window.switchTab = async function (type) {
             let html = "";
             list.forEach(team => {
                 const isLeader = team.leaderId == user.user_id;
+                const leaderDetail = team.memberDetails?.find(d => d.userId == team.leaderId);
+                const leaderName = leaderDetail ? leaderDetail.nick : '未知';
+
                 html += `<div style="border:1px solid #eee;border-radius:10px;padding:15px;margin-bottom:12px" class="msg-animate">
                     <h3>${team.teamName} ${isLeader ? '<span style="color:var(--primary);font-size:12px">(队长)</span>' : ''}</h3>
-                    <p>队长ID：${team.leaderId}</p>
+                    <p>队长：${leaderName}</p>
                     <p>加入时间：${new Date(team.joinTime).toLocaleString()}</p>
-                    <hr><h4>成员 (${team.members.length}人)</h4>`;
-                team.members.forEach(m => html += `<div style="padding:5px 0">用户ID：${m.userId} ｜ ${new Date(m.joinTime).toLocaleString()}</div>`);
+                    <hr><h4>队员 (${team.memberDetails.length}人)</h4>`;
+
+                team.memberDetails.forEach(m => {
+                    const isMe = m.userId == user.user_id;
+                    const displayName = m.nick + (isMe ? ' <span style="color:#999;font-size:12px">(我)</span>' : '');
+                    html += `<div style="padding:5px 0">${displayName} ｜ ${m.joinTime}</div>`;
+                });
+
                 html += (isLeader ? `<button class="btn-s" style="background:#dc3545;margin-top:10px" onclick="dissolveTeam(${team.teamId})">解散队伍</button>`
                     : `<button class="btn-s" style="background:#dc3545;margin-top:10px" onclick="leaveTeam(${team.teamId})">退出队伍</button>`);
                 html += `</div>`;
@@ -271,12 +325,11 @@ window.switchTab = async function (type) {
             tab.innerHTML = html;
         } catch (e) { tab.innerHTML = "<p>加载失败</p>"; }
     } else if (type === 'msgs') {
+        // …（消息部分不变）
         try {
-            // 队伍消息
             const notiRes = await fetch(`http://localhost:8081/notification/my?userId=${user.user_id}`);
             const notiData = (await notiRes.json()).data || [];
 
-            // 入队申请（已包含申请人昵称和队伍名）
             const applyRes = await fetch(`http://localhost:8081/team/my/applies?leaderId=${user.user_id}`);
             let applyData = (await applyRes.json()).data || [];
             applyData.sort((a, b) => new Date(b.applyTime) - new Date(a.applyTime));
@@ -319,6 +372,7 @@ window.switchTab = async function (type) {
     }
 };
 
+// ----- 队伍操作 -----
 async function dissolveTeam(teamId) {
     if (!requireLogin()) return;
     const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -329,7 +383,6 @@ async function dissolveTeam(teamId) {
         if (r.code === 200) switchTab('teams');
     });
 }
-
 async function leaveTeam(teamId) {
     if (!requireLogin()) return;
     const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -340,17 +393,16 @@ async function leaveTeam(teamId) {
         if (r.code === 200) switchTab('teams');
     });
 }
-
 async function agreeApply(id) {
     const res = await fetch(`http://localhost:8081/team/agree?id=${id}`, { method: 'POST' });
     const r = await res.json();
-    showToast(r.msg, 'success');
+    showToast(r.msg || '已同意', 'success');
     switchTab('msgs');
 }
 async function rejectApply(id) {
     const res = await fetch(`http://localhost:8081/team/reject?id=${id}`, { method: 'POST' });
     const r = await res.json();
-    showToast(r.msg, 'error');
+    showToast(r.msg || '已拒绝', 'error');
     switchTab('msgs');
 }
 
@@ -360,26 +412,40 @@ function logout() {
         location.href = 'login.html';
     });
 }
-
+// ----- 初始化（核心修改：启动时校验合法性）-----
 async function init() {
-    let localUser = JSON.parse(localStorage.getItem('currentUser')) || userData;
-    userData = localUser;
-    if (userData.user_id) {
+    let stored = JSON.parse(localStorage.getItem('currentUser')) || {};
+    if (stored.user_id) {
         try {
-            const res = await fetch("http://localhost:8081/user/info?userId=" + userData.user_id);
+            const res = await fetch("http://localhost:8081/user/info?userId=" + stored.user_id);
             const result = await res.json();
-            if (result.data) {
+            if (!result.data) {
+                // 服务器查无此人 → 清除本地登录态
+                localStorage.removeItem('currentUser');
+                stored = {};
+            } else {
+                // 更新本地存储为最新信息
                 userData = result.data;
                 localStorage.setItem('currentUser', JSON.stringify(userData));
             }
-        } catch (e) { }
+        } catch (e) {
+            // 网络错误也视为未登录
+            localStorage.removeItem('currentUser');
+            stored = {};
+        }
     }
-    let avatar = userData.avatar || "";
-    if (avatar && !avatar.startsWith("http")) avatar = "http://localhost:8081" + avatar;
-    if (!avatar) avatar = "https://ui-avatars.com/api/?name=" + encodeURIComponent(userData.nick || "用户");
-    document.getElementById('nav-avatar').src = avatar;
-    document.getElementById('nav-nick').innerText = userData.nick;
-    renderHome();
+
+    // 无论是否登录，都更新导航栏
+    updateNavUser();
+
+    // 如果最终未登录，强制展示主页（不进入个人中心）
+    if (!isLoggedIn()) {
+        document.getElementById('p-home').style.display = 'block';
+        document.getElementById('p-profile').style.display = 'none';
+        renderHome();
+    } else {
+        renderHome();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', init);

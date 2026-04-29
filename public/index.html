@@ -136,9 +136,9 @@
                         <p style="margin: 5px 0;"><strong>更新时间:</strong> <span id="info-utime" style="font-size:13px; color:#999;"></span></p>
                     </div>
                     <div style="display:flex; gap:10px; margin-top: 15px;">
-                        <button class="btn-s" style="background:var(--primary); flex:1;" onclick="location.href='user.html'">编辑资料</button>
-                        <button class="btn-s" style="background:var(--success); flex:1;" onclick="location.href='create-team.html'">发起组队</button>
-                        <button class="btn-s" style="background:#6a1b9a; flex:1; color:white;" onclick="location.href='match.html'">匹配队友</button>
+                        <button class="btn-s" style="background:var(--primary); flex:1;" onclick="goToIfLogin('user.html')">编辑资料</button>
+                        <button class="btn-s" style="background:var(--success); flex:1;" onclick="goToIfLogin('create-team.html')">发起组队</button>
+                        <button class="btn-s" style="background:#6a1b9a; flex:1; color:white;" onclick="goToIfLogin('match.html')">匹配队友</button>
                         <button class="btn-s" style="background:var(--danger); flex:1;" onclick="logout()">退出登录</button>
                     </div>
                 </div>
