@@ -1,159 +1,450 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>匹配系统界面</title>
+    <title>队友匹配</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        /* 页面整体布局 */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-
         body {
+            background: #f0f2f5;
+            font-family: 'Microsoft YaHei', sans-serif;
             padding: 30px;
-            background-color: #f5f5f5;
         }
 
-        /* 左右分栏容器 */
-        .container {
+        .match-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
             display: flex;
             gap: 30px;
-            height: 80vh;
         }
 
-        /* 左侧区域 */
-        .left-panel {
-            width: 260px;
+        .filter-panel {
+            width: 280px;
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+            .filter-panel h3 {
+                margin: 0 0 10px 0;
+                color: #333;
+                font-size: 18px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+        .filter-group label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .filter-group select, .filter-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+            background: #fafafa;
+        }
+
+            .filter-group select:focus, .filter-group input:focus {
+                border-color: #0078d4;
+                background: white;
+            }
+
+        .time-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+            .time-row input {
+                flex: 1;
+            }
+
+        .match-btn {
+            background: linear-gradient(135deg, #0078d4, #005a9e);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(0,120,212,0.3);
+        }
+
+            .match-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 18px rgba(0,120,212,0.4);
+            }
+
+        .result-panel {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+            .result-panel h3 {
+                margin-top: 0;
+                color: #333;
+            }
+
+        .match-card {
+            display: flex;
+            align-items: center;
+            background: #f9fbfd;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 16px;
+            transition: 0.2s;
+            border: 1px solid #eee;
+        }
+
+            .match-card:hover {
+                box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+            }
+
+        .match-avatar {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 18px;
+            border: 2px solid #0078d4;
+        }
+
+        .match-info {
+            flex: 1;
+        }
+
+            .match-info .nick {
+                font-weight: bold;
+                font-size: 16px;
+                margin-bottom: 6px;
+            }
+
+            .match-info .game {
+                font-size: 13px;
+                color: #0078d4;
+                background: #e8f2ff;
+                display: inline-block;
+                padding: 2px 10px;
+                border-radius: 20px;
+                margin-right: 8px;
+            }
+
+            .match-info .time-badge {
+                font-size: 12px;
+                color: #666;
+                background: #f0f0f0;
+                padding: 2px 8px;
+                border-radius: 10px;
+            }
+
+        .match-score {
             display: flex;
             flex-direction: column;
             align-items: center;
+            margin: 0 20px;
+        }
+
+        .score-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: conic-gradient(#0078d4 0deg, #0078d4 calc(3.6deg * var(--p)), #e0e0e0 calc(3.6deg * var(--p)));
+            display: flex;
+            align-items: center;
             justify-content: center;
-            gap: 20px;
+            position: relative;
         }
 
-        /* 输入框标签 */
-        .input-label {
-            font-size: 16px;
-            font-weight: 500;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        /* 游戏ID输入框 */
-        #gameIdInput {
-            width: 100%;
-            padding: 12px 15px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            outline: none;
-            transition: border 0.3s;
-        }
-
-            #gameIdInput:focus {
-                border-color: #409eff;
+            .score-circle::before {
+                content: '';
+                position: absolute;
+                width: 46px;
+                height: 46px;
+                background: white;
+                border-radius: 50%;
             }
 
-        /* 开始匹配按钮样式 */
-        #matchBtn {
-            width: 100%;
-            padding: 15px 20px;
-            font-size: 16px;
-            background-color: #409eff;
+        .score-value {
+            position: relative;
+            font-weight: bold;
+            color: #0078d4;
+            font-size: 14px;
+        }
+
+        .friend-btn {
+            background: #6c5ce7;
             color: white;
             border: none;
-            border-radius: 6px;
+            padding: 8px 18px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background 0.3s;
+            font-size: 13px;
+            transition: 0.2s;
+            white-space: nowrap;
         }
 
-            #matchBtn:hover {
-                background-color: #337ecc;
+            .friend-btn:hover {
+                background: #5a4bd1;
             }
 
-        /* 右侧展示区域 */
-        .right-panel {
-            flex: 1;
-            background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            overflow-y: auto;
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-size: 15px;
         }
 
-        /* 匹配结果样式 */
-        .result-item {
-            padding: 12px;
-            margin: 10px 0;
-            background-color: #f0f7ff;
-            border-left: 4px solid #409eff;
-            border-radius: 4px;
-            font-size: 15px;
+        .progress-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            display: none;
+        }
+
+        .progress-box {
+            background: white;
+            border-radius: 16px;
+            padding: 30px 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            min-width: 300px;
+        }
+
+            .progress-box p {
+                margin-bottom: 20px;
+                font-weight: bold;
+                color: #333;
+            }
+
+        .progress-bar-bg {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #0078d4, #40c4ff);
+            border-radius: 10px;
+            animation: fillProgress 1.8s ease forwards;
+        }
+
+        @keyframes fillProgress {
+            0% {
+                width: 0;
+            }
+
+            80% {
+                width: 90%;
+            }
+
+            100% {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- 左侧：输入框 + 按钮 -->
-        <div class="left-panel">
-            <div class="input-label">请输入游戏ID</div>
-            <input type="number" id="gameIdInput">
-
-            <button id="matchBtn">开始匹配</button>
+    <div class="match-wrapper">
+        <div class="filter-panel">
+            <h3>🎯 匹配筛选</h3>
+            <div class="filter-group">
+                <label>常玩游戏</label>
+                <select id="matchGame">
+                    <option value="">不限</option>
+                    <option value="王者荣耀">王者荣耀</option>
+                    <option value="英雄联盟">英雄联盟</option>
+                    <option value="和平精英">和平精英</option>
+                    <option value="原神">原神</option>
+                    <option value="CS:GO">CS:GO</option>
+                    <option value="Dota2">Dota2</option>
+                    <option value="Apex英雄">Apex英雄</option>
+                    <option value="守望先锋">守望先锋</option>
+                    <option value="我的世界">我的世界</option>
+                    <option value="光遇">光遇</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>游玩时段</label>
+                <div class="time-row">
+                    <input type="time" id="timeStart" value="18:00">
+                    <span>至</span>
+                    <input type="time" id="timeEnd" value="22:00">
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>匹配需求</label>
+                <select id="matchNeed">
+                    <option value="">不限</option>
+                    <option value="开黑上分">开黑上分</option>
+                    <option value="娱乐休闲">娱乐休闲</option>
+                    <option value="固定队友">固定队友</option>
+                    <option value="萌新带飞">萌新带飞</option>
+                    <option value="聊天交友">聊天交友</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>性格</label>
+                <select id="matchPersonality">
+                    <option value="">不限</option>
+                    <option value="稳健">稳健</option>
+                    <option value="活泼">活泼</option>
+                    <option value="话痨">话痨</option>
+                    <option value="安静">安静</option>
+                    <option value="佛系">佛系</option>
+                    <option value="好胜">好胜</option>
+                </select>
+            </div>
+            <button class="match-btn" id="startMatchBtn">🔍 开始匹配</button>
         </div>
-
-        <!-- 右侧：匹配结果展示区 -->
-        <div class="right-panel" id="resultArea">
+        <div class="result-panel" id="resultContainer">
+            <h3>✨ 匹配结果</h3>
+            <div class="empty-state">选择条件后点击“开始匹配”</div>
+        </div>
+    </div>
+    <div id="progressModal" class="progress-modal">
+        <div class="progress-box">
+            <p>⏳ 正在为您匹配队友...</p>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill"></div>
+            </div>
         </div>
     </div>
 
     <script>
-        const matchBtn = document.getElementById('matchBtn');
-        const resultArea = document.getElementById('resultArea');
-        const gameIdInput = document.getElementById('gameIdInput');
+        // 独立 Toast
+        function showToast(msg, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('toast-hidden');
+                setTimeout(() => toast.remove(), 400);
+            }, 2500);
+        }
 
-       async function getMatchUserList(gameId) {
-    try {
-        // 👇 把 8080 改成 8081，和后端端口一致
-        const res = await fetch(`http://localhost:8081/user/match?gameId=${gameId}`);
-        const result = await res.json();
-        return result.data || [];
-    } catch (error) {
-        alert("请先启动后端！");
-        console.error(error);
-        return [];
-    }
-}
+        const startMatchBtn = document.getElementById('startMatchBtn');
+        const resultContainer = document.getElementById('resultContainer');
+        const progressModal = document.getElementById('progressModal');
 
-        matchBtn.addEventListener('click', async function() {
-            const gameId = gameIdInput.value.trim();
-            if (!gameId) {
-                alert('请输入游戏ID！');
+        startMatchBtn.addEventListener('click', async () => {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser || !currentUser.user_id) {
+                showToast('请先登录', 'error');
                 return;
             }
+            const game = document.getElementById('matchGame').value;
+            const timeStart = document.getElementById('timeStart').value;
+            const timeEnd = document.getElementById('timeEnd').value;
+            const need = document.getElementById('matchNeed').value;
+            const personality = document.getElementById('matchPersonality').value;
 
-            resultArea.innerHTML = '';
-            const userIdList = await getMatchUserList(gameId);
+            progressModal.style.display = 'flex';
+            resultContainer.innerHTML = '<h3>✨ 匹配结果</h3><div class="empty-state">匹配中...</div>';
 
-            if (userIdList.length === 0) {
-                const div = document.createElement('div');
-                div.className = 'result-item';
-                div.textContent = `游戏ID ${gameId} 未匹配到用户`;
-                resultArea.appendChild(div);
-                return;
+            try {
+                const params = new URLSearchParams();
+                if (game) params.append('gameName', game);
+                if (timeStart) params.append('playtimeStart', timeStart);
+                if (timeEnd) params.append('playtimeEnd', timeEnd);
+                if (need) params.append('matchNeed', need);
+                if (personality) params.append('personality', personality);
+                params.append('excludeUserId', currentUser.user_id);
+
+                const res = await fetch(`http://localhost:8081/user/matchAdvanced?${params.toString()}`);
+                const result = await res.json();
+
+                setTimeout(() => {
+                    progressModal.style.display = 'none';
+                    if (result.code === 200 && result.data && result.data.length > 0) {
+                        renderMatchResults(result.data);
+                    } else {
+                        resultContainer.innerHTML = '<h3>✨ 匹配结果</h3><div class="empty-state">😔 没有找到合适的队友，试试调整条件吧</div>';
+                    }
+                }, 1600);
+            } catch (err) {
+                setTimeout(() => {
+                    progressModal.style.display = 'none';
+                    resultContainer.innerHTML = '<h3>✨ 匹配结果</h3><div class="empty-state">❌ 匹配失败，请检查网络或后端</div>';
+                }, 1600);
+                console.error(err);
             }
-
-            userIdList.forEach(userId => {
-                const div = document.createElement('div');
-                div.className = 'result-item';
-                div.textContent = `游戏ID ${gameId} 匹配到用户ID：${userId}`;
-                resultArea.appendChild(div);
-            });
         });
+
+        function renderMatchResults(users) {
+            let html = '<h3>✨ 匹配结果</h3>';
+            users.forEach(u => {
+                const score = u.matchScore || 75;
+                const avatar = u.avatar ? (u.avatar.startsWith('http') ? u.avatar : 'http://localhost:8081' + u.avatar) : 'https://ui-avatars.com/api/?name=User';
+                html += `
+                    <div class="match-card">
+                        <img class="match-avatar" src="${avatar}" onerror="this.src='https://ui-avatars.com/api/?name=User'">
+                        <div class="match-info">
+                            <div class="nick">${u.nick || '用户'}</div>
+                            <span class="game">${u.gameName || '未知游戏'}</span>
+                            <span class="time-badge">${u.playtime || ''}</span>
+                        </div>
+                        <div class="match-score">
+                            <div class="score-circle" style="--p:${score};">
+                                <span class="score-value">${score}%</span>
+                            </div>
+                            <span style="font-size:11px;color:#888;">匹配度</span>
+                        </div>
+                        <button class="friend-btn" onclick="sendFriendApply(${u.userId})">➕ 好友申请</button>
+                    </div>`;
+            });
+            resultContainer.innerHTML = html;
+        }
+
+        async function sendFriendApply(toUserId) {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser) {
+                showToast('请先登录', 'error');
+                return;
+            }
+            try {
+                const res = await fetch(`http://localhost:8081/friend/apply?toUserId=${toUserId}&fromUserId=${currentUser.user_id}`, { method: 'POST' });
+                const result = await res.json();
+                if (result.code === 200) {
+                    showToast('好友申请已发送', 'success');
+                } else {
+                    showToast(result.msg || '申请失败', 'error');
+                }
+            } catch (e) {
+                showToast('请求失败', 'error');
+            }
+        }
     </script>
 </body>
 </html>

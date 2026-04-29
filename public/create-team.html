@@ -5,9 +5,8 @@
     <title>发起组队</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* 页面专属美化样式 */
         body {
-            background: #fff; /* ✅ 这里恢复成白色，去掉橘色 */
+            background: #fff;
             margin: 0;
             padding: 20px;
         }
@@ -29,7 +28,6 @@
             font-size: 24px;
         }
 
-        /* 封面上传框美化 */
         .upload-box {
             width: 120px;
             height: 120px;
@@ -63,7 +61,6 @@
                 display: none;
             }
 
-        /* 输入框美化 */
         .form-group {
             margin-bottom: 20px;
         }
@@ -76,6 +73,12 @@
                 font-size: 14px;
             }
 
+        .req {
+            color: red;
+            margin-left: 4px;
+            font-weight: bold;
+        }
+        /* 新增必填星号样式 */
         .form-control {
             width: 100%;
             padding: 14px 16px;
@@ -99,7 +102,6 @@
             min-height: 100px;
         }
 
-        /* 按钮美化 */
         .btn-submit {
             width: 100%;
             padding: 15px;
@@ -136,6 +138,50 @@
                 color: #666;
                 text-decoration: underline;
             }
+
+        /* ========== Toast 固定右上角 ========== */
+        .toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 14px 24px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            animation: slideIn 0.4s ease;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+            pointer-events: none;
+        }
+
+        .toast-success {
+            background: #28a745;
+        }
+
+        .toast-error {
+            background: #dc3545;
+        }
+
+        .toast-info {
+            background: #0078d4;
+        }
+
+        .toast-hidden {
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -150,12 +196,12 @@
         <input type="file" id="team-cover-input" accept="image/*" onchange="previewCover(event)" style="display: none;">
 
         <div class="form-group">
-            <label>队伍名称</label>
+            <label>队伍名称 <span class="req">*</span></label>
             <input type="text" id="team-title" class="form-control" placeholder="给队伍起个响亮的名字（必填）">
         </div>
         <div class="form-group">
-            <label>招募需求</label>
-            <input type="text" id="team-need" class="form-control" placeholder="例如：缺2人，熟悉Vue（选填）">
+            <label>招募需求 <span class="req">*</span></label>
+            <input type="text" id="team-need" class="form-control" placeholder="例如：缺2人，熟悉Vue（必填）">
         </div>
         <div class="form-group">
             <label>项目简介</label>
@@ -167,56 +213,63 @@
     </div>
 
     <script>
+        // 独立 Toast
+        function showToast(msg, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('toast-hidden');
+                setTimeout(() => toast.remove(), 400);
+            }, 2500);
+        }
+
         let coverPath = "";
 
-        // 上传图片 + 预览
         async function previewCover(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             let formData = new FormData();
             formData.append("file", file);
-
             try {
-                let res = await fetch("http://localhost:8081/file/upload", {
-                    method: "POST",
-                    body: formData
-                });
-
+                let res = await fetch("http://localhost:8081/file/upload", { method: "POST", body: formData });
                 let path = await res.text();
-                console.log("返回路径：", path);
-
                 coverPath = path;
                 let img = document.getElementById("team-cover-pre");
                 img.src = "http://localhost:8081" + coverPath;
                 img.style.display = "block";
-
                 document.getElementById("cover-plus-icon").style.display = "none";
                 document.getElementById("cover-text").style.display = "none";
             } catch (err) {
                 console.error(err);
-                alert("上传失败");
+                showToast("封面上传失败", "error");
             }
         }
 
-        // 发布队伍
         async function doPublish() {
             const title = document.getElementById("team-title").value.trim();
             if (!title) {
-                alert("请输入队伍名称！");
+                showToast("请输入队伍名称！", "error");
+                return;
+            }
+
+            const need = document.getElementById("team-need").value.trim();
+            if (!need) {
+                showToast("请填写招募需求！", "error");
                 return;
             }
 
             const user = JSON.parse(localStorage.getItem("currentUser"));
             if (!user || !user.user_id) {
-                alert("请先登录！");
+                showToast("请先登录！", "error");
                 return;
             }
 
             const postData = {
                 gameId: 1,
                 teamName: title,
-                teamNeed: document.getElementById("team-need").value.trim() || "无",
+                teamNeed: need,
                 teamDesc: document.getElementById("team-desc").value.trim() || "无",
                 teamCover: coverPath || "",
                 leaderId: user.user_id,
@@ -230,16 +283,15 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(postData)
                 });
-
                 let result = await res.json();
                 if (result.code === 200) {
-                    alert("发布成功！");
-                    location.href = "index.html";
+                    showToast("发布成功！", "success");
+                    setTimeout(() => { location.href = "index.html"; }, 800);
                 } else {
-                    alert("失败：" + result.msg);
+                    showToast("失败：" + result.msg, "error");
                 }
             } catch (e) {
-                alert("服务器未启动！");
+                showToast("服务器未启动！", "error");
             }
         }
     </script>

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QQ风格群聊（真实AI）</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', 'Microsoft YaHei', sans-serif; }
+        body {
+            background: url('https://picsum.photos/id/1037/1920/1080') center/cover fixed;
+            height:100vh; display:flex; position:relative; overflow:hidden;
+        }
+        body::before {
+            content:''; position:absolute; inset:0;
+            background: linear-gradient(135deg, rgba(46,148,16,0.2), rgba(17,94,73,0.2));
+            z-index:0;
+        }
+
+        .group-list {
+            width:260px; background:rgba(255,255,255,0.15); backdrop-filter:blur(12px);
+            border-right:1px solid rgba(255,255,255,0.2); display:flex; flex-direction:column; z-index:1;
+        }
+        .group-header { padding:20px; color:white; font-size:18px; font-weight:600; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center; }
+        .group-header button { background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); color:white; border-radius:12px; padding:6px 10px; cursor:pointer; font-size:12px; }
+        .group-item { padding:15px 20px; color:white; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:10px; }
+        .group-item.active { background:rgba(255,255,255,0.2); }
+        .group-avatar { width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-weight:600; color:white; }
+
+        .chat-area { flex:1; display:flex; flex-direction:column; z-index:1; }
+        .chat-header { padding:15px 20px; background:rgba(255,255,255,0.15); backdrop-filter:blur(12px); color:white; font-size:16px; font-weight:600; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center; }
+        .chat-header button { background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); color:white; border-radius:12px; padding:4px 10px; cursor:pointer; font-size:12px; }
+        .chat-container { flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:15px; }
+        .message { max-width:65%; padding:10px 14px; border-radius:18px; animation:fadeIn 0.3s; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+        .message.self { align-self:flex-end; background:rgba(255,255,255,0.95); color:#333; border-bottom-right-radius:4px; }
+        .message.other { align-self:flex-start; background:rgba(187,173,220,0.9); color:white; border-bottom-left-radius:4px; }
+        .nickname { font-size:12px; opacity:0.8; margin-bottom:4px; }
+        .content { font-size:15px; line-height:1.4; }
+        .time { font-size:11px; opacity:0.7; text-align:right; margin-top:4px; }
+        .input-area { padding:15px 20px; background:rgba(255,255,255,0.15); backdrop-filter:blur(12px); display:flex; gap:10px; border-top:1px solid rgba(255,255,255,0.1); }
+        #message-input { flex:1; padding:14px 20px; background:rgba(255,255,255,0.95); border:none; border-radius:25px; font-size:15px; outline:none; }
+        #send-btn { padding:14px 25px; background:white; border:none; border-radius:25px; font-weight:600; cursor:pointer; }
+
+        .member-list { width:220px; background:rgba(255,255,255,0.15); backdrop-filter:blur(12px); border-left:1px solid rgba(255,255,255,0.2); z-index:1; }
+        .member-header { padding:15px 20px; color:white; font-size:16px; font-weight:600; border-bottom:1px solid rgba(255,255,255,0.1); }
+        .member-item { padding:12px 20px; color:white; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(255,255,255,0.05); }
+        .member-avatar { width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-weight:600; color:white; }
+
+        .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:999; display:none; }
+        .modal-content { background:white; border-radius:16px; padding:30px; width:90%; max-width:380px; text-align:center; }
+        .modal input { width:100%; padding:12px 15px; border:1px solid #ddd; border-radius:12px; margin:10px 0; font-size:15px; }
+        .modal button { padding:10px 20px; border:none; border-radius:12px; background:#667eea; color:white; cursor:pointer; margin:5px; }
+    </style>
+</head>
+<body>
+
+<div class="group-list">
+    <div class="group-header">
+        <span>群聊列表</span>
+        <div>
+            <button onclick="showCreateGroup()">创建群</button>
+            <button onclick="logout()">退出登录</button>
+        </div>
+    </div>
+    <div id="group-list-container"></div>
+</div>
+
+<div class="chat-area">
+    <div class="chat-header">
+        <span id="current-group-name">选择群</span>
+        <div>
+            <button onclick="showAddMember()">添加成员</button>
+            <button onclick="showLeaveGroupConfirm()">退出群</button>
+            <button onclick="clearHistory()">清空记录</button>
+        </div>
+    </div>
+    <div class="chat-container" id="chat-container"></div>
+    <div class="input-area">
+        <input type="text" id="message-input" placeholder="输入消息...">
+        <button id="send-btn" onclick="sendMessage()">发送</button>
+    </div>
+</div>
+
+<div class="member-list">
+    <div class="member-header">群成员</div>
+    <div id="member-container"></div>
+</div>
+
+<div class="modal" id="createModal">
+    <div class="modal-content">
+        <h3>创建群聊</h3>
+        <input type="text" id="groupName" placeholder="群名称">
+        <button onclick="createGroup()">确认</button>
+        <button onclick="closeModal()">取消</button>
+    </div>
+</div>
+
+<div class="modal" id="addMemberModal">
+    <div class="modal-content">
+        <h3>添加成员</h3>
+        <input type="text" id="memberName" placeholder="成员昵称">
+        <button onclick="addMember()">确认添加</button>
+        <button onclick="closeModal()">取消</button>
+    </div>
+</div>
+
+<script>
+let currentUser = null;
+let currentGroup = null;
+
+const allSystemUsers = ["admin", "test", "董浩宇", "惠子豪", "李鑫磊", "AI助手", "AI助教"];
+
+window.onload = function () {
+    const userStr = localStorage.getItem('userLogin');
+    if (!userStr) { location.href = 'login.html'; return; }
+    currentUser = JSON.parse(userStr);
+    initGroups();
+    renderGroupList();
+    switchGroup("game");
+    bindEnterSend();
+};
+
+function initGroups() {
+    if (!localStorage.getItem('groups')) {
+        localStorage.setItem('groups', JSON.stringify([
+            { id: "game", name: "长期游戏队友匹配群", members: ["admin", "test", "董浩宇", "惠子豪", "李鑫磊", "AI助手"] },
+            { id: "study", name: "软件工程学习群", members: ["admin", "test", "AI助教"] }
+        ]));
+    }
+}
+
+function getGroups() { return JSON.parse(localStorage.getItem('groups')) || []; }
+function saveGroups(g) { localStorage.setItem('groups', JSON.stringify(g)); }
+
+function renderGroupList() {
+    const list = document.getElementById('group-list-container');
+    const groups = getGroups();
+    list.innerHTML = '';
+    groups.forEach(g => {
+        const item = document.createElement('div');
+        item.className = 'group-item' + (g.id === currentGroup ? ' active' : '');
+        item.onclick = () => switchGroup(g.id);
+        item.innerHTML = `
+            <div class="group-avatar">${g.name[0]}</div>
+            <div>
+                <div>${g.name}</div>
+                <div style="font-size:12px;opacity:0.7">${g.members.length}人</div>
+            </div>
+        `;
+        list.appendChild(item);
+    });
+}
+
+function switchGroup(gid) {
+    currentGroup = gid;
+    const g = getGroups().find(x => x.id === gid);
+    if (!g) return;
+    document.getElementById('current-group-name').innerText = g.name;
+    renderMembers();
+    loadHistory();
+    renderGroupList();
+}
+
+function renderMembers() {
+    const container = document.getElementById('member-container');
+    const g = getGroups().find(x => x.id === currentGroup);
+    container.innerHTML = '';
+    if (!g) return;
+    g.members.forEach(m => {
+        const item = document.createElement('div');
+        item.className = 'member-item';
+        item.innerHTML = `<div class="member-avatar">${m[0]}</div><div>${m}</div>`;
+        container.appendChild(item);
+    });
+    document.querySelector('.member-header').innerText = `群成员(${g.members.length})`;
+}
+
+// ========================== 核心：AI 100%干净纯文本 ==========================
+async function sendMessage() {
+    const input = document.getElementById('message-input');
+    const content = input.value.trim();
+    if (!content || !currentGroup) return;
+
+    const msg = {
+        group: currentGroup,
+        type: 'self',
+        nickname: currentUser.nickname,
+        content: content,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    renderMsg(msg);
+    saveMsg(msg);
+    input.value = '';
+
+    const groups = getGroups();
+    const g = groups.find(x => x.id === currentGroup);
+    if (!g.members.includes("AI助手")) return;
+
+    try {
+        const response = await fetch("https://ark.cn-beijing.volces.com/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer b40245c1-3a87-43a2-ba78-f8781dd6c2f5"
+            },
+            body: JSON.stringify({
+                model: "doubao-seed-1-6-251015",
+                messages: [
+                    {
+                        role: "system",
+                        content: "只允许使用纯文本聊天，禁止使用任何符号：# * = - [ ] ( ) ** ### ``` 等，只说人话，简短。"
+                    },
+                    { role: "user", content: content }
+                ],
+                stream: false
+            })
+        });
+
+        const data = await response.json();
+        let aiReply = "我在呢！";
+        if (data.choices && data.choices.length > 0) {
+            aiReply = data.choices[0].message.content;
+
+            // 自动清理所有残留符号（终极保险）
+            aiReply = aiReply.replace(/[#*`\[\]\-=(){}|]/g, '').trim();
+        }
+
+        const aiMsg = {
+            group: currentGroup,
+            type: 'other',
+            nickname: "AI助手",
+            content: aiReply,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        renderMsg(aiMsg);
+        saveMsg(aiMsg);
+
+    } catch (e) {
+        console.error("AI调用失败:", e);
+        const errMsg = {
+            group: currentGroup, type: 'other', nickname: "AI助手",
+            content: "我在呢！",
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        renderMsg(errMsg);
+    }
+}
+
+function renderMsg(m) {
+    const c = document.getElementById('chat-container');
+    const div = document.createElement('div');
+    div.className = `message ${m.type}`;
+    div.innerHTML = `<div class="nickname">${m.nickname}</div><div class="content">${m.content}</div><div class="time">${m.time}</div>`;
+    c.appendChild(div);
+    c.scrollTop = c.scrollHeight;
+}
+
+function saveMsg(m) {
+    const key = `chat_${m.group}`;
+    const h = JSON.parse(localStorage.getItem(key) || '[]');  
+    h.push(m);
+    localStorage.setItem(key, JSON.stringify(h));
+}
+
+function loadHistory() {
+    const c = document.getElementById('chat-container');
+    c.innerHTML = '';
+    if (!currentGroup) return;
+    const h = JSON.parse(localStorage.getItem(`chat_${currentGroup}`) || '[]');
+    h.forEach(m => renderMsg(m));
+}
+
+function showCreateGroup() { document.getElementById('createModal').style.display = 'flex'; }
+function createGroup() {
+    const name = document.getElementById('groupName').value.trim();
+    if (!name) return alert('请输入群名');
+    const groups = getGroups();
+    groups.push({ id: 'g' + Date.now(), name: name, members: [currentUser.nickname] });
+    saveGroups(groups);
+    renderGroupList();
+    switchGroup(groups[groups.length - 1].id);
+    closeModal();
+}
+
+function showAddMember() { document.getElementById('addMemberModal').style.display = 'flex'; }
+function addMember() {
+    const name = document.getElementById('memberName').value.trim();
+    if (!name || !currentGroup) return;
+    if (!allSystemUsers.includes(name)) {
+        alert('该用户不存在，无法添加');
+        return;
+    }
+    const groups = getGroups();
+    const g = groups.find(x => x.id === currentGroup);
+    if (!g.members.includes(name)) {
+        g.members.push(name);
+        saveGroups(groups);
+        renderMembers();
+    }
+    closeModal();
+    document.getElementById('memberName').value = '';
+}
+
+function showLeaveGroupConfirm() {
+    if (!currentGroup) return;
+    if (!confirm('确定退出该群？')) return;
+    let groups = getGroups();
+    let g = groups.find(x => x.id === currentGroup);
+    g.members = g.members.filter(m => m !== currentUser.nickname);
+    if (g.members.length === 0) groups = groups.filter(x => x.id !== currentGroup);
+    saveGroups(groups);
+    if (groups.length) switchGroup(groups[0].id);
+    else { currentGroup = null; document.getElementById('current-group-name').innerText = '无群'; }
+}
+
+function clearHistory() {
+    if (!currentGroup) return;
+    if (!confirm('确定清空当前群聊天记录？')) return;
+    localStorage.removeItem(`chat_${currentGroup}`);
+    loadHistory();
+}
+
+function closeModal() {
+    document.getElementById('createModal').style.display = 'none';
+    document.getElementById('addMemberModal').style.display = 'none';
+}
+
+function logout() {
+    localStorage.removeItem('userLogin');
+    location.href = 'login.html';
+}
+
+function bindEnterSend() {
+    document.getElementById('message-input').addEventListener('keypress', e => {
+        if (e.key === 'Enter') sendMessage();
+    });
+}
+</script>
+</body>
+</html>

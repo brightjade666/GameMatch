@@ -17,11 +17,22 @@
     update_time: "从未更新"
 };
 
+// 全局 Toast（用于 index / create-team 等页面）
+function showToast(msg, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-' + type;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('toast-hidden');
+        setTimeout(() => toast.remove(), 400);
+    }, 2500);
+}
+
 async function renderHome() {
     const res = await fetch("http://localhost:8081/team/list");
     const result = await res.json();
     const list = result.data || [];
-
     const homeList = document.getElementById("home-list");
     if (!homeList) return;
 
@@ -44,10 +55,24 @@ async function renderHome() {
 }
 
 window.showDetail = async function (id) {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) return showToast("请先登录", "error");
+
+    // 检查当前用户是否已加入该队伍
+    let alreadyJoined = false;
+    try {
+        const checkRes = await fetch(`http://localhost:8081/team/my/joined?userId=${currentUser.user_id}`);
+        const checkResult = await checkRes.json();
+        const myTeams = checkResult.data || [];
+        alreadyJoined = myTeams.some(t => t.teamId == id);
+    } catch (e) {
+        console.error("队伍检查失败", e);
+    }
+
     const res = await fetch(`http://localhost:8081/team/detail/${id}`);
     const result = await res.json();
     const t = result.data;
-    if (!t) return alert("队伍不存在");
+    if (!t) return showToast("队伍不存在", "error");
 
     const content = document.getElementById('detail-content');
     if (!content) return;
@@ -83,11 +108,10 @@ window.showDetail = async function (id) {
                 <button class="btn-s" style="background:var(--primary);">发送</button>
             </div>
         </div>
-
-        <button class="btn-s" style="background:var(--primary); width:100%; margin-top:15px;"
-            onclick="applyJoinTeam(${t.id})">
-            申请加入
-        </button>
+        ${alreadyJoined ?
+            '<p style="text-align:center; color:#999; margin-top:15px;">你已经是该队伍成员</p>' :
+            `<button class="btn-s" style="background:var(--primary); width:100%; margin-top:15px;" onclick="applyJoinTeam(${t.id})">申请加入</button>`
+        }
     `;
     document.getElementById('detail-modal').style.display = 'block';
 };
@@ -95,21 +119,31 @@ window.showDetail = async function (id) {
 async function applyJoinTeam(teamId) {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     if (!user) {
-        alert("请先登录");
+        showToast("请先登录", "error");
         return;
+    }
+
+    // 再次检查重复加入（安全保护）
+    try {
+        const checkRes = await fetch(`http://localhost:8081/team/my/joined?userId=${user.user_id}`);
+        const checkResult = await checkRes.json();
+        const myTeams = checkResult.data || [];
+        const alreadyJoined = myTeams.some(t => t.teamId == teamId);
+        if (alreadyJoined) {
+            showToast("你已经加入该队伍", "error");
+            return;
+        }
+    } catch (e) {
+        console.error("队伍检查失败", e);
     }
 
     const res = await fetch("http://localhost:8081/team/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            teamId: teamId,
-            userId: user.user_id
-        })
+        body: JSON.stringify({ teamId: teamId, userId: user.user_id })
     });
-
     const result = await res.json();
-    alert(result.msg);
+    showToast(result.msg, result.code === 200 ? 'success' : 'error');
 }
 
 window.closeDetail = function (e) {
@@ -122,123 +156,86 @@ window.switchP = function (p) {
     document.querySelectorAll('.nav-links span').forEach(s => s.classList.remove('active'));
     const navItem = document.getElementById('n-' + p);
     if (navItem) navItem.classList.add('active');
-
     document.getElementById('p-home').style.display = p === 'home' ? 'block' : 'none';
     document.getElementById('p-profile').style.display = p === 'profile' ? 'block' : 'none';
-
     if (p === 'profile') {
         userData = JSON.parse(localStorage.getItem('currentUser')) || userData;
-
-        // ========== 修复：个人资料头像也拼接前缀 ==========
         let avatarUrl = userData.avatar || "";
-        if (avatarUrl && !avatarUrl.startsWith("http")) {
-            avatarUrl = "http://localhost:8081" + avatarUrl;
-        }
-        if (!avatarUrl) {
-            avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(userData.nick);
-        }
-
-        document.getElementById('info-avatar').src = avatarUrl;
-        document.getElementById('info-nick').innerText = userData.nick;
-        document.getElementById('info-uid').innerText = userData.user_id;
-        document.getElementById('info-bio').innerText = userData.introduction;
-        document.getElementById('info-utime').innerText = userData.update_time;
+        if (avatarUrl && !avatarUrl.startsWith("http")) avatarUrl = "http://localhost:8081" + avatarUrl;
+        if (!avatarUrl) avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(userData.nick);
+        const infoAvatar = document.getElementById('info-avatar');
+        if (infoAvatar) infoAvatar.src = avatarUrl;
+        const infoNick = document.getElementById('info-nick');
+        if (infoNick) infoNick.innerText = userData.nick;
+        const infoUid = document.getElementById('info-uid');
+        if (infoUid) infoUid.innerText = userData.user_id;
+        const infoBio = document.getElementById('info-bio');
+        if (infoBio) infoBio.innerText = userData.introduction;
+        const infoUtime = document.getElementById('info-utime');
+        if (infoUtime) infoUtime.innerText = userData.update_time;
     }
 };
 
 window.switchTab = async function (type) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
     document.getElementById('t-' + type).classList.add('active-tab');
-
     const tabContent = document.getElementById('tab-content');
     const user = JSON.parse(localStorage.getItem('currentUser'));
-
     if (type === 'teams') {
         try {
             const res = await fetch("http://localhost:8081/team/my/joined?userId=" + user.user_id);
             const result = await res.json();
             const list = result.data || [];
-
-            if (list.length === 0) {
-                tabContent.innerHTML = "<p>你还没有加入任何队伍</p>";
-                return;
-            }
-
+            if (list.length === 0) { tabContent.innerHTML = "<p>你还没有加入任何队伍</p>"; return; }
             let html = "";
             list.forEach(team => {
-                html += `
-                <div style="border:1px solid #eee; border-radius:10px; padding:15px; margin-bottom:12px;">
-                    <h3>${team.teamName}</h3>
-                    <p>队长ID：${team.leaderId}</p>
-                    <p>加入时间：${team.joinTime}</p>
-                    <hr>
-                    <h4>队伍成员（${team.members.length}人）</h4>
-                `;
-
+                html += `<div style="border:1px solid #eee; border-radius:10px; padding:15px; margin-bottom:12px;">
+                    <h3>${team.teamName}</h3><p>队长ID：${team.leaderId}</p><p>加入时间：${team.joinTime}</p>
+                    <hr><h4>队伍成员（${team.members.length}人）</h4>`;
                 team.members.forEach(m => {
-                    html += `
-                    <div style="padding:5px 0; font-size:14px;">
-                        用户ID：${m.userId}｜加入时间：${m.joinTime}
-                    </div>`;
+                    html += `<div style="padding:5px 0; font-size:14px;">用户ID：${m.userId}｜加入时间：${m.joinTime}</div>`;
                 });
-
                 html += `</div>`;
             });
-
             tabContent.innerHTML = html;
-        } catch (e) {
-            tabContent.innerHTML = "<p>加载失败</p>";
-        }
-
+        } catch (e) { tabContent.innerHTML = "<p>加载失败</p>"; }
     } else {
         const res = await fetch("http://localhost:8081/team/my/applies?leaderId=" + user.user_id);
         const result = await res.json();
         const list = result.data || [];
-
-        if (list.length === 0) {
-            tabContent.innerHTML = `<p style="text-align:center;">暂无申请消息</p>`;
-            return;
-        }
-
+        if (list.length === 0) { tabContent.innerHTML = `<p style="text-align:center;">暂无申请消息</p>`; return; }
         tabContent.innerHTML = `
             <h4 style="margin-bottom:15px;">入队申请</h4>
             ${list.map(a => `
                 <div style="padding:12px; border-bottom:1px solid #eee;">
                     <p>申请人ID：${a.userId}</p>
                     <p>申请时间：${new Date(a.applyTime).toLocaleString()}</p>
-                    <p>状态：${a.status === 0 ? '待处理' :
-                a.status === 1 ? '已同意' : '已拒绝'
-            }</p>
+                    <p>状态：${a.status === 0 ? '待处理' : a.status === 1 ? '已同意' : '已拒绝'}</p>
                     ${a.status === 0 ? `
                         <div style="display:flex;gap:10px;margin-top:8px;">
                             <button class="btn-s" style="background:var(--success);flex:1;" onclick="agreeApply(${a.id})">同意</button>
                             <button class="btn-s" style="background:var(--danger);flex:1;" onclick="rejectApply(${a.id})">拒绝</button>
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('')}
-        `;
+                        </div>` : ''}
+                </div>`).join('')}`;
     }
 };
 
 async function agreeApply(id) {
     const res = await fetch("http://localhost:8081/team/agree?id=" + id, { method: "POST" });
     const r = await res.json();
-    alert(r.msg);
+    showToast(r.msg, "success");
     switchTab('msgs');
 }
-
 async function rejectApply(id) {
     const res = await fetch("http://localhost:8081/team/reject?id=" + id, { method: "POST" });
     const r = await res.json();
-    alert(r.msg);
+    showToast(r.msg, "error");
     switchTab('msgs');
 }
 
 async function init() {
     let localUser = JSON.parse(localStorage.getItem('currentUser')) || userData;
     userData = localUser;
-
     if (userData.user_id) {
         try {
             const res = await fetch("http://localhost:8081/user/info?userId=" + userData.user_id);
@@ -247,24 +244,15 @@ async function init() {
                 userData = result.data;
                 localStorage.setItem('currentUser', JSON.stringify(userData));
             }
-        } catch (e) {
-            console.log("从数据库获取用户信息失败", e);
-        }
+        } catch (e) { console.log("从数据库获取用户信息失败", e); }
     }
-
-    // ========== 修复：顶部头像自动拼接前缀 ==========
     let avatarUrl = userData.avatar || "";
-    if (avatarUrl && !avatarUrl.startsWith("http")) {
-        avatarUrl = "http://localhost:8081" + avatarUrl;
-    }
-    if (!avatarUrl) {
-        avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(userData.nick || "用户");
-    }
-
-    document.getElementById('nav-avatar').src = avatarUrl;
-    document.getElementById('nav-nick').innerText = userData.nick;
-
+    if (avatarUrl && !avatarUrl.startsWith("http")) avatarUrl = "http://localhost:8081" + avatarUrl;
+    if (!avatarUrl) avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(userData.nick || "用户");
+    const navAvatar = document.getElementById('nav-avatar');
+    if (navAvatar) navAvatar.src = avatarUrl;
+    const navNick = document.getElementById('nav-nick');
+    if (navNick) navNick.innerText = userData.nick;
     renderHome();
 }
-
 document.addEventListener('DOMContentLoaded', init);

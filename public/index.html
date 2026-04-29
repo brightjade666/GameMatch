@@ -10,26 +10,22 @@
             --success: #28a745;
             --danger: #dc3545;
         }
-
         .tab-btn {
             padding: 8px 16px;
             border: none;
             background: #f1f1f1;
             cursor: pointer;
         }
-
         .active-tab {
             background: var(--primary);
             color: white;
         }
-
         .team-card {
             border: 1px solid #eee;
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 12px;
         }
-
         .member-item {
             padding: 6px 0;
             font-size: 14px;
@@ -47,163 +43,163 @@
     </style>
 </head>
 <body>
-    <header>
-        <div class="nav-links">
-            <span onclick="switchP('home')" id="n-home" class="active">主页</span>
-            <span onclick="switchP('profile')" id="n-profile">我的</span>
-        </div>
-        <div class="user-info-nav" onclick="switchP('profile')">
-            <img id="nav-avatar" src="https://ui-avatars.com/api/?name=用户">
-            <span id="nav-nick">...</span>
-        </div>
-    </header>
+<header>
+    <div class="nav-links">
+        <span onclick="switchP('home')" id="n-home" class="active">主页</span>
+        <span onclick="switchP('profile')" id="n-profile">我的</span>
+    </div>
+    <div class="user-info-nav" onclick="switchP('profile')">
+        <img id="nav-avatar" src="https://ui-avatars.com/api/?name=用户">
+        <span id="nav-nick">...</span>
+    </div>
+</header>
 
-    <div class="container">
-        <section id="p-home">
-            <div class="grid" id="home-list"></div>
-        </section>
+<div class="container">
+    <section id="p-home">
+        <div class="grid" id="home-list"></div>
+    </section>
 
-        <section id="p-profile" style="display:none;">
-            <div class="user-display-card" style="display: flex; background: #fff; padding: 25px; border-radius: 15px; gap: 30px; margin-bottom: 20px;">
-                <div style="flex: 1;">
-                    <div style="position: relative; display: inline-block;">
-                        <img id="info-avatar" src="https://ui-avatars.com/api/?name=用户" style="width:120px; height:120px; border-radius:15px; object-fit: cover;">
-                        <div id="status-tag" style="display:none; position: absolute; top:0; left:0; background:red; color:#fff; font-size:12px; padding:2px 8px; border-radius:15px 0 15px 0;">已禁用</div>
-                    </div>
-                    <h2 id="info-nick" style="margin:10px 0 5px 0;"></h2>
-                    <p id="info-bio" style="font-size:13px; color:#666; margin:0; line-height:1.4;"></p>
+    <section id="p-profile" style="display:none;">
+        <div class="user-display-card" style="display: flex; background: #fff; padding: 25px; border-radius: 15px; gap: 30px; margin-bottom: 20px;">
+            <div style="flex: 1;">
+                <div style="position: relative; display: inline-block;">
+                    <img id="info-avatar" src="https://ui-avatars.com/api/?name=用户" style="width:120px; height:120px; border-radius:15px; object-fit: cover;">
+                    <div id="status-tag" style="display:none; position: absolute; top:0; left:0; background:red; color:#fff; font-size:12px; padding:2px 8px; border-radius:15px 0 15px 0;">已禁用</div>
                 </div>
-                <div style="flex: 1; border-left: 1px solid #eee; padding-left: 30px; display: flex; flex-direction: column; justify-content: space-between;">
-                    <div>
-                        <p style="margin: 5px 0;"><strong>用户 ID:</strong> <span id="info-uid" style="color:var(--primary)"></span></p>
-                        <p style="margin: 5px 0;"><strong>更新时间:</strong> <span id="info-utime" style="font-size:13px; color:#999;"></span></p>
-                    </div>
-
-                    <!-- 按钮区域：已添加 匹配队友 按钮 -->
-                    <div style="display:flex; gap:10px; margin-top: 15px;">
-                        <button class="btn-s" style="background:var(--primary); flex:1;" onclick="location.href='user.html'">编辑资料</button>
-                        <button class="btn-s" style="background:var(--success); flex:1;" onclick="location.href='create-team.html'">发起组队</button>
-                        <!-- 匹配队友按钮 新增在这里 -->
-                        <button class="btn-s" style="background:#6a1b9a; flex:1; color:white;" onclick="location.href='match.html'">匹配队友</button>
-                        <button class="btn-s" style="background:var(--danger); flex:1;" onclick="logout()">退出登录</button>
-                    </div>
+                <h2 id="info-nick" style="margin:10px 0 5px 0;"></h2>
+                <p id="info-bio" style="font-size:13px; color:#666; margin:0; line-height:1.4;"></p>
+            </div>
+            <div style="flex: 1; border-left: 1px solid #eee; padding-left: 30px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <p style="margin: 5px 0;"><strong>用户 ID:</strong> <span id="info-uid" style="color:var(--primary)"></span></p>
+                    <p style="margin: 5px 0;"><strong>更新时间:</strong> <span id="info-utime" style="font-size:13px; color:#999;"></span></p>
+                </div>
+                
+                <!-- 按钮区域：已添加 匹配队友 按钮 -->
+                <div style="display:flex; gap:10px; margin-top: 15px;">
+                    <button class="btn-s" style="background:var(--primary); flex:1;" onclick="location.href='user.html'">编辑资料</button>
+                    <button class="btn-s" style="background:var(--success); flex:1;" onclick="location.href='create-team.html'">发起组队</button>
+                    <!-- 匹配队友按钮 新增在这里 -->
+                    <button class="btn-s" style="background:#6a1b9a; flex:1; color:white;" onclick="location.href='match.html'">匹配队友</button>
+                    <button class="btn-s" style="background:var(--danger); flex:1;" onclick="logout()">退出登录</button>
                 </div>
             </div>
+        </div>
 
-            <div style="background:#fff; padding:20px; border-radius:15px;">
-                <div style="display:flex; margin-bottom:15px;">
-                    <button id="t-teams" class="tab-btn" onclick="switchTab('teams')">我的队伍</button>
-                    <button id="t-msgs" class="tab-btn" onclick="switchTab('msgs')">我的消息</button>
-                </div>
-                <div id="tab-content"></div>
+        <div style="background:#fff; padding:20px; border-radius:15px;">
+            <div style="display:flex; margin-bottom:15px;">
+                <button id="t-teams" class="tab-btn" onclick="switchTab('teams')">我的队伍</button>
+                <button id="t-msgs" class="tab-btn" onclick="switchTab('msgs')">我的消息</button>
             </div>
-        </section>
-    </div>
+            <div id="tab-content"></div>
+        </div>
+    </section>
+</div>
 
-    <div id="detail-modal" class="modal-overlay" onclick="closeDetail(event)">
-        <div class="modal" id="detail-content" style="max-width:600px;"></div>
-    </div>
+<div id="detail-modal" class="modal-overlay" onclick="closeDetail(event)">
+    <div class="modal" id="detail-content" style="max-width:600px;"></div>
+</div>
 
-    <script>
-        window.addEventListener('DOMContentLoaded', async () => {
-            const localUser = JSON.parse(localStorage.getItem('currentUser'));
-            if (!localUser || !localUser.user_id) {
-                switchP('profile');
-                switchTab('teams');
+<script>
+window.addEventListener('DOMContentLoaded', async () => {
+    const localUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!localUser || !localUser.user_id) {
+        switchP('profile');
+        switchTab('teams');
+        return;
+    }
+
+    try {
+        const res = await fetch("http://localhost:8081/user/info?userId=" + localUser.user_id);
+        const result = await res.json();
+        const user = result.data;
+
+        if (user) {
+            const avatarPrefix = "http://localhost:8081";
+            let avatarUrl = user.avatar || "";
+            
+            if(avatarUrl && !avatarUrl.startsWith("http")){
+                avatarUrl = avatarPrefix + avatarUrl;
+            }
+            if(!avatarUrl){
+                avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.nick || "用户");
+            }
+
+            let navImg = document.getElementById('nav-avatar');
+            navImg.src = avatarUrl;
+            navImg.setAttribute('src', avatarUrl);
+
+            let infoImg = document.getElementById('info-avatar');
+            infoImg.src = avatarUrl;
+            infoImg.setAttribute('src', avatarUrl);
+
+            document.getElementById('nav-nick').innerText = user.nick;
+            document.getElementById('info-nick').innerText = user.nick;
+            document.getElementById('info-uid').innerText = user.user_id;
+            document.getElementById('info-bio').innerText = user.introduction || "这个人很懒，什么都没写";
+            document.getElementById('info-utime').innerText = user.update_time || "未知";
+        }
+    } catch (err) {
+        console.error("加载用户信息失败", err);
+    }
+
+    switchP('profile');
+    switchTab('teams');
+});
+
+function logout() {
+    if (!confirm('确定退出？')) return;
+    localStorage.clear();
+    location.href = 'login.html';
+}
+
+async function switchTab(type) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
+    document.getElementById('t-' + type).classList.add('active-tab');
+    const tabContent = document.getElementById('tab-content');
+    const user = JSON.parse(localStorage.getItem('currentUser')) || {};
+    const userId = user.user_id;
+
+    if (!userId) {
+        tabContent.innerHTML = "<p>请先登录</p>";
+        return;
+    }
+
+    if (type === 'teams') {
+        try {
+            const res = await fetch("http://localhost:8081/team/my/joined?userId=" + userId);
+            const result = await res.json();
+            const list = result.data || [];
+
+            if (list.length === 0) {
+                tabContent.innerHTML = "<p>你还没有加入任何队伍</p>";
                 return;
             }
 
-            try {
-                const res = await fetch("http://localhost:8081/user/info?userId=" + localUser.user_id);
-                const result = await res.json();
-                const user = result.data;
-
-                if (user) {
-                    const avatarPrefix = "http://localhost:8081";
-                    let avatarUrl = user.avatar || "";
-
-                    if (avatarUrl && !avatarUrl.startsWith("http")) {
-                        avatarUrl = avatarPrefix + avatarUrl;
-                    }
-                    if (!avatarUrl) {
-                        avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.nick || "用户");
-                    }
-
-                    let navImg = document.getElementById('nav-avatar');
-                    navImg.src = avatarUrl;
-                    navImg.setAttribute('src', avatarUrl);
-
-                    let infoImg = document.getElementById('info-avatar');
-                    infoImg.src = avatarUrl;
-                    infoImg.setAttribute('src', avatarUrl);
-
-                    document.getElementById('nav-nick').innerText = user.nick;
-                    document.getElementById('info-nick').innerText = user.nick;
-                    document.getElementById('info-uid').innerText = user.user_id;
-                    document.getElementById('info-bio').innerText = user.introduction || "这个人很懒，什么都没写";
-                    document.getElementById('info-utime').innerText = user.update_time || "未知";
-                }
-            } catch (err) {
-                console.error("加载用户信息失败", err);
-            }
-
-            switchP('profile');
-            switchTab('teams');
-        });
-
-        function logout() {
-            if (!confirm('确定退出？')) return;
-            localStorage.clear();
-            location.href = 'login.html';
+            let html = "";
+            list.forEach(team => {
+                html += `
+                <div class="team-card">
+                    <h3>${team.teamName}</h3>
+                    <p>队长ID：${team.leaderId}</p>
+                    <p>加入时间：${team.joinTime}</p>
+                    <hr>
+                    <h4>队伍成员（${team.members.length}人）</h4>
+                `;
+                team.members.forEach(m => {
+                    html += `<div class="member-item">用户ID：${m.userId}｜加入时间：${m.joinTime}</div>`;
+                });
+                html += `</div>`;
+            });
+            tabContent.innerHTML = html;
+        } catch (err) {
+            tabContent.innerHTML = "<p>加载失败</p>";
         }
-
-        async function switchTab(type) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
-            document.getElementById('t-' + type).classList.add('active-tab');
-            const tabContent = document.getElementById('tab-content');
-            const user = JSON.parse(localStorage.getItem('currentUser')) || {};
-            const userId = user.user_id;
-
-            if (!userId) {
-                tabContent.innerHTML = "<p>请先登录</p>";
-                return;
-            }
-
-            if (type === 'teams') {
-                try {
-                    const res = await fetch("http://localhost:8081/team/my/joined?userId=" + userId);
-                    const result = await res.json();
-                    const list = result.data || [];
-
-                    if (list.length === 0) {
-                        tabContent.innerHTML = "<p>你还没有加入任何队伍</p>";
-                        return;
-                    }
-
-                    let html = "";
-                    list.forEach(team => {
-                        html += `
-                    <div class="team-card">
-                        <h3>${team.teamName}</h3>
-                        <p>队长ID：${team.leaderId}</p>
-                        <p>加入时间：${team.joinTime}</p>
-                        <hr>
-                        <h4>队伍成员（${team.members.length}人）</h4>
-                    `;
-                        team.members.forEach(m => {
-                            html += `<div class="member-item">用户ID：${m.userId}｜加入时间：${m.joinTime}</div>`;
-                        });
-                        html += `</div>`;
-                    });
-                    tabContent.innerHTML = html;
-                } catch (err) {
-                    tabContent.innerHTML = "<p>加载失败</p>";
-                }
-            } else {
-                tabContent.innerHTML = "<p>暂无消息</p>";
-            }
-        }
-    </script>
-    <script src="script.js"></script>
+    } else {
+        tabContent.innerHTML = "<p>暂无消息</p>";
+    }
+}
+</script>
+<script src="script.js"></script>
 </body>
 </html>

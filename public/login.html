@@ -23,16 +23,16 @@
             overflow: hidden;
         }
 
-            body::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
-                z-index: 0;
-            }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+            z-index: 0;
+        }
 
         .container {
             background: rgba(255, 255, 255, 0.15);
@@ -50,15 +50,8 @@
         }
 
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .title {
@@ -75,32 +68,32 @@
             margin-bottom: 20px;
         }
 
-            .input-group input {
-                width: 100%;
-                padding: 18px 20px 18px 50px;
-                background: rgba(255, 255, 255, 0.9);
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 30px;
-                font-size: 15px;
-                color: #333;
-                outline: none;
-                transition: all 0.3s ease;
-            }
+        .input-group input {
+            width: 100%;
+            padding: 18px 20px 18px 50px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            font-size: 15px;
+            color: #333;
+            outline: none;
+            transition: all 0.3s ease;
+        }
 
-                .input-group input:focus {
-                    background: white;
-                    border-color: rgba(255, 255, 255, 0.5);
-                    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-                }
+        .input-group input:focus {
+            background: white;
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
 
-            .input-group .icon {
-                position: absolute;
-                left: 18px;
-                top: 50%;
-                transform: translateY(50%);
-                font-size: 20px;
-                color: #666;
-            }
+        .input-group .icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(50%);
+            font-size: 20px;
+            color: #666;
+        }
 
         .row {
             display: flex;
@@ -118,11 +111,11 @@
             cursor: pointer;
         }
 
-            .remember input {
-                width: 16px;
-                height: 16px;
-                cursor: pointer;
-            }
+        .remember input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
 
         .forgot {
             color: white;
@@ -131,9 +124,9 @@
             transition: opacity 0.3s;
         }
 
-            .forgot:hover {
-                opacity: 0.8;
-            }
+        .forgot:hover {
+            opacity: 0.8;
+        }
 
         .login-btn {
             width: 100%;
@@ -149,10 +142,10 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-            .login-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-            }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
 
         .register-link {
             text-align: center;
@@ -161,17 +154,17 @@
             font-size: 15px;
         }
 
-            .register-link a {
-                color: white;
-                font-weight: 600;
-                text-decoration: none;
-                margin-left: 5px;
-                transition: opacity 0.3s;
-            }
+        .register-link a {
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+            margin-left: 5px;
+            transition: opacity 0.3s;
+        }
 
-                .register-link a:hover {
-                    opacity: 0.8;
-                }
+        .register-link a:hover {
+            opacity: 0.8;
+        }
 
         .message {
             margin: 15px 0;
@@ -200,19 +193,14 @@
             display: none;
         }
 
-            #register-form.active {
-                display: block;
-                animation: fadeIn 0.4s ease;
-            }
+        #register-form.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .back-login {
@@ -222,11 +210,11 @@
             font-size: 14px;
         }
 
-            .back-login a {
-                color: white;
-                text-decoration: none;
-                font-weight: 600;
-            }
+        .back-login a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
