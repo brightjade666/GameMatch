@@ -442,6 +442,7 @@ async function init() {
     if (!isLoggedIn()) {
         document.getElementById('p-home').style.display = 'block';
         document.getElementById('p-profile').style.display = 'none';
+        //document.getElementById('p-chat').style.display = 'none';
         renderHome();
     } else {
         renderHome();

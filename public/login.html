@@ -23,21 +23,20 @@
             overflow: hidden;
         }
 
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
-            z-index: 0;
-        }
+            body::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+                z-index: 0;
+            }
 
         .container {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
             padding: 50px 40px;
@@ -50,8 +49,15 @@
         }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .title {
@@ -68,32 +74,32 @@
             margin-bottom: 20px;
         }
 
-        .input-group input {
-            width: 100%;
-            padding: 18px 20px 18px 50px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 30px;
-            font-size: 15px;
-            color: #333;
-            outline: none;
-            transition: all 0.3s ease;
-        }
+            .input-group input {
+                width: 100%;
+                padding: 18px 20px 18px 50px;
+                background: rgba(255, 255, 255, 0.9);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 30px;
+                font-size: 15px;
+                color: #333;
+                outline: none;
+                transition: all 0.3s ease;
+            }
 
-        .input-group input:focus {
-            background: white;
-            border-color: rgba(255, 255, 255, 0.5);
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-        }
+                .input-group input:focus {
+                    background: white;
+                    border-color: rgba(255, 255, 255, 0.5);
+                    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+                }
 
-        .input-group .icon {
-            position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(50%);
-            font-size: 20px;
-            color: #666;
-        }
+            .input-group .icon {
+                position: absolute;
+                left: 18px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 20px;
+                color: #666;
+            }
 
         .row {
             display: flex;
@@ -111,11 +117,11 @@
             cursor: pointer;
         }
 
-        .remember input {
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-        }
+            .remember input {
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+            }
 
         .forgot {
             color: white;
@@ -124,9 +130,9 @@
             transition: opacity 0.3s;
         }
 
-        .forgot:hover {
-            opacity: 0.8;
-        }
+            .forgot:hover {
+                opacity: 0.8;
+            }
 
         .login-btn {
             width: 100%;
@@ -142,10 +148,10 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-        }
+            .login-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            }
 
         .register-link {
             text-align: center;
@@ -154,17 +160,17 @@
             font-size: 15px;
         }
 
-        .register-link a {
-            color: white;
-            font-weight: 600;
-            text-decoration: none;
-            margin-left: 5px;
-            transition: opacity 0.3s;
-        }
+            .register-link a {
+                color: white;
+                font-weight: 600;
+                text-decoration: none;
+                margin-left: 5px;
+                transition: opacity 0.3s;
+            }
 
-        .register-link a:hover {
-            opacity: 0.8;
-        }
+                .register-link a:hover {
+                    opacity: 0.8;
+                }
 
         .message {
             margin: 15px 0;
@@ -193,14 +199,19 @@
             display: none;
         }
 
-        #register-form.active {
-            display: block;
-            animation: fadeIn 0.4s ease;
-        }
+            #register-form.active {
+                display: block;
+                animation: fadeIn 0.4s ease;
+            }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .back-login {
@@ -210,11 +221,11 @@
             font-size: 14px;
         }
 
-        .back-login a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-        }
+            .back-login a {
+                color: white;
+                text-decoration: none;
+                font-weight: 600;
+            }
     </style>
 </head>
 <body>
@@ -262,10 +273,17 @@
     </div>
 
     <script>
-        // 已登录直接跳首页
         window.onload = function () {
-            if (localStorage.getItem('currentUser')) {
-                location.href = 'index.html';
+            // 如果已登录且资料完整，直接进入首页
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (currentUser && currentUser.user_id) {
+                // 简单判断一下有没有昵称（nick），有就直接进首页
+                if (currentUser.nick && currentUser.nick.trim() !== '') {
+                    location.href = 'index.html';
+                } else {
+                    // 有登录但没有昵称，去编辑资料页
+                    location.href = 'user.html';
+                }
             }
         };
 
@@ -289,7 +307,7 @@
             msg.className = 'message ' + (isSuccess ? 'success' : 'error');
         }
 
-        // ====================== 登录：对接SpringBoot后端 ======================
+        // ====================== 登录 ======================
         async function login() {
             const username = document.getElementById('login-name').value.trim();
             const password = document.getElementById('login-pwd').value.trim();
@@ -302,28 +320,54 @@
             try {
                 const response = await fetch("http://localhost:8081/login", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username, password })
                 });
-
                 const result = await response.json();
 
                 if (result.code === 200) {
                     showMessage(result.msg, true);
 
-                    // 保存登录信息，和发布页统一用 currentUser
-                    const userInfo = {
+                    // 先保存基础登录信息
+                    const basicInfo = {
                         user_id: result.user_id,
                         username: result.username,
                         token: result.token
                     };
-                    localStorage.setItem("currentUser", JSON.stringify(userInfo));
+                    localStorage.setItem("currentUser", JSON.stringify(basicInfo));
 
-                    setTimeout(() => {
-                        location.href = "index.html";
-                    }, 1000);
+                    // 获取完整用户资料，判断是否完善
+                    try {
+                        const infoRes = await fetch(`http://localhost:8081/user/info?userId=${result.user_id}`);
+                        const infoData = await infoRes.json();
+                        if (infoData.code === 200 && infoData.data) {
+                            // 用完整信息覆盖 currentUser
+                            localStorage.setItem("currentUser", JSON.stringify(infoData.data));
+                            const u = infoData.data;
+
+                            // 判断必备字段是否齐全
+                            const requiredFields = ['nick', 'age', 'game_name', 'personality', 'playtime', 'matchneed', 'contact'];
+                            const incomplete = requiredFields.some(f => {
+                                const val = u[f];
+                                return !val || val === '' || val === 0;
+                            });
+
+                            if (incomplete) {
+                                localStorage.setItem('needCompleteProfile', 'true');
+                                setTimeout(() => { location.href = "user.html"; }, 1000);
+                            } else {
+                                localStorage.removeItem('needCompleteProfile');
+                                setTimeout(() => { location.href = "index.html"; }, 1000);
+                            }
+                        } else {
+                            // 获取资料失败，也引导去编辑
+                            localStorage.setItem('needCompleteProfile', 'true');
+                            setTimeout(() => { location.href = "user.html"; }, 1000);
+                        }
+                    } catch (e) {
+                        localStorage.setItem('needCompleteProfile', 'true');
+                        setTimeout(() => { location.href = "user.html"; }, 1000);
+                    }
                 } else {
                     showMessage(result.msg, false);
                 }
@@ -333,7 +377,7 @@
             }
         }
 
-        // ====================== 注册：对接SpringBoot后端 ======================
+        // ====================== 注册 ======================
         async function register() {
             const username = document.getElementById('register-name').value.trim();
             const password = document.getElementById('register-pwd').value.trim();
@@ -346,25 +390,20 @@
             try {
                 const response = await fetch("http://localhost:8081/register", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         username: username,
                         password: password,
                         contact: username
                     })
                 });
-
                 const result = await response.json();
-
                 if (result.code === 200) {
                     showMessage(result.msg, true);
                     switchTab('login');
                 } else {
                     showMessage(result.msg, false);
                 }
-
             } catch (err) {
                 showMessage('注册失败：服务器连接失败', false);
                 console.error(err);
