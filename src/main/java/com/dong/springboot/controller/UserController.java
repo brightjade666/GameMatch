@@ -58,8 +58,6 @@ public class UserController {
         result.put("user_id", loginUser.getUserId());
         result.put("username", loginUser.getUsername());
         result.put("token", "LOGIN_SUCCESS_" + System.currentTimeMillis()); // 给前端需要的token
-
-
         return result;
     }
 

@@ -28,7 +28,6 @@ public class Result {
         return r;
     }
 
-    // 必须生成 getter/setter
     public Integer getCode() { return code; }
     public void setCode(Integer code) { this.code = code; }
     public String getMsg() { return msg; }
