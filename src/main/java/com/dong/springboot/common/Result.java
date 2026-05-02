@@ -13,6 +13,14 @@ public class Result {
         return r;
     }
 
+    public static Result success(String msg, Object data) {
+        Result r = new Result();
+        r.code = 200;
+        r.msg = msg;
+        r.data = data;
+        return r;
+    }
+
     public static Result error(String msg) {
         Result r = new Result();
         r.code = 500;
@@ -20,7 +28,6 @@ public class Result {
         return r;
     }
 
-    // 必须生成 getter/setter
     public Integer getCode() { return code; }
     public void setCode(Integer code) { this.code = code; }
     public String getMsg() { return msg; }
