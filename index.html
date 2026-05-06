@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 40px;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .info {
+            margin: 20px 0;
+            font-size: 18px;
+            color: #666;
+        }
+        .logout-btn {
+            padding: 12px 30px;
+            background: #ff4d4f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>欢迎回来！</h1>
+        <div class="info">用户名：<span id="nickname"></span></div>
+        <div class="info">身份令牌：<span id="token"></span></div>
+        <button class="logout-btn" onclick="logout()">退出登录</button>
+    </div>
+
+    <script>
+        // 页面加载时检查登录状态
+        window.onload = function () {
+            const user = JSON.parse(localStorage.getItem('userLogin'));
+            if (!user) {
+                // 没登录 → 跳回登录页
+                location.href = 'login.html';
+                return;
+            }
+            // 显示信息
+            document.getElementById('nickname').innerText = user.nickname;
+            document.getElementById('token').innerText = user.token;
+        };
+
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('userLogin');
+            location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>
