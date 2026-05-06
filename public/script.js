@@ -111,11 +111,11 @@ function updateNavUser() {
         avatarElem.src = avatar;
         nickElem.innerText = stored.nick || stored.username || '用户';
     } else {
-        // 未登录显示默认图标
         avatarElem.src = "https://ui-avatars.com/api/?name=未登录";
         nickElem.innerText = "未登录";
     }
 }
+
 // 查看用户资料弹窗
 async function viewProfile(userId) {
     try {
@@ -248,7 +248,7 @@ window.closeDetail = function (e) {
     }
 };
 
-// ----- 页面切换（已修改）-----
+// ----- 页面切换 -----
 window.switchP = function (p) {
     document.querySelectorAll('.nav-links span').forEach(s => s.classList.remove('active'));
     document.getElementById('n-' + p).classList.add('active');
@@ -258,10 +258,8 @@ window.switchP = function (p) {
     if (p === 'home') {
         renderHome();
     } else if (p === 'profile') {
-        // 读取最新登录状态
         const stored = JSON.parse(localStorage.getItem('currentUser')) || {};
         if (isLoggedIn()) {
-            // 已登录：展示真实信息（尝试从服务器刷新一次）
             userData = stored;
             let avatar = userData.avatar || "";
             if (avatar && !avatar.startsWith("http")) avatar = "http://localhost:8081" + avatar;
@@ -272,7 +270,6 @@ window.switchP = function (p) {
             document.getElementById('info-bio').innerText = userData.introduction || '';
             document.getElementById('info-utime').innerText = userData.update_time || '';
         } else {
-            // ----- 未登录状态显示 -----
             document.getElementById('info-avatar').src = "https://ui-avatars.com/api/?name=未登录";
             document.getElementById('info-nick').innerText = "未登录";
             document.getElementById('info-uid').innerText = "——";
@@ -282,15 +279,17 @@ window.switchP = function (p) {
         switchTab('teams');
     }
 };
+
 // ----- 个人中心 Tab -----
 window.switchTab = async function (type) {
     if (!requireLogin()) {
-        // 未登录则直接展示空白提示，不调用后端接口
         document.getElementById('tab-content').innerHTML = "<p>请先登录后查看</p>";
         return;
     }
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
-    document.getElementById('t-' + type).classList.add('active-tab');
+    if (document.getElementById('t-' + type)) {
+        document.getElementById('t-' + type).classList.add('active-tab');
+    }
     const tab = document.getElementById('tab-content');
     const user = JSON.parse(localStorage.getItem('currentUser'));
 
@@ -325,22 +324,28 @@ window.switchTab = async function (type) {
             tab.innerHTML = html;
         } catch (e) { tab.innerHTML = "<p>加载失败</p>"; }
     } else if (type === 'msgs') {
-        // …（消息部分不变）
         try {
             const notiRes = await fetch(`http://localhost:8081/notification/my?userId=${user.user_id}`);
-            const notiData = (await notiRes.json()).data || [];
+            const allNoti = (await notiRes.json()).data || [];
 
             const applyRes = await fetch(`http://localhost:8081/team/my/applies?leaderId=${user.user_id}`);
             let applyData = (await applyRes.json()).data || [];
             applyData.sort((a, b) => new Date(b.applyTime) - new Date(a.applyTime));
 
+            const friendApplyRes = await fetch(`http://localhost:8081/friend/applies/received?userId=${user.user_id}`);
+            const friendApplies = (await friendApplyRes.json()).data || [];
+
+            // 分离队伍通知和好友相关通知
+            const teamNoti = allNoti.filter(n => ['dissolve', 'leave', 'join', 'kick'].includes(n.type));
+            const friendNoti = allNoti.filter(n => ['friend_accept', 'friend_delete'].includes(n.type));
+
             let notiHtml = '<div class="msg-section"><h4>队伍消息</h4>';
-            if (notiData.length) {
-                notiData.forEach(n => {
+            if (teamNoti.length) {
+                teamNoti.forEach(n => {
                     notiHtml += `<div class="msg-item">
-                        <p>${n.content}</p>
-                        <span style="font-size:12px;color:#999">${new Date(n.createTime).toLocaleString()}</span>
-                    </div>`;
+                    <p>${n.content}</p>
+                    <span style="font-size:12px;color:#999">${new Date(n.createTime).toLocaleString()}</span>
+                </div>`;
                 });
             } else {
                 notiHtml += '<div class="msg-item" style="color:#999;text-align:center">暂无消息</div>';
@@ -351,26 +356,80 @@ window.switchTab = async function (type) {
             if (applyData.length) {
                 applyData.forEach(a => {
                     applyHtml += `<div class="msg-item">
-                        <p>申请人：${a.applierName || '用户' + a.userId} 申请加入「${a.teamName}」</p>
-                        <p>申请时间：${new Date(a.applyTime).toLocaleString()}</p>
-                        <p>状态：${a.status === 0 ? '待处理' : a.status === 1 ? '已同意' : '已拒绝'}</p>
-                        <button class="view-btn" onclick="viewProfile(${a.userId})">查看资料</button>
-                        ${a.status === 0 ? `
-                        <div style="display:flex;gap:10px;margin-top:8px">
-                            <button class="btn-s" style="background:var(--success);flex:1" onclick="agreeApply(${a.id})">同意</button>
-                            <button class="btn-s" style="background:var(--danger);flex:1" onclick="rejectApply(${a.id})">拒绝</button>
-                        </div>` : ''}
-                    </div>`;
+                    <p>申请人：${a.applierName || '用户' + a.userId} 申请加入「${a.teamName}」</p>
+                    <p>申请时间：${new Date(a.applyTime).toLocaleString()}</p>
+                    <p>状态：${a.status === 0 ? '待处理' : a.status === 1 ? '已同意' : '已拒绝'}</p>
+                    <button class="view-btn" onclick="viewProfile(${a.userId})">查看资料</button>
+                    ${a.status === 0 ? `
+                    <div style="display:flex;gap:10px;margin-top:8px">
+                        <button class="btn-s" style="background:var(--success);flex:1" onclick="agreeApply(${a.id})">同意</button>
+                        <button class="btn-s" style="background:var(--danger);flex:1" onclick="rejectApply(${a.id})">拒绝</button>
+                    </div>` : ''}
+                </div>`;
                 });
             } else {
                 applyHtml += '<div class="msg-item" style="color:#999;text-align:center">暂无申请</div>';
             }
             applyHtml += '</div>';
 
-            tab.innerHTML = `<div style="display:flex; gap:20px;">${notiHtml}${applyHtml}</div>`;
+            let friendHtml = '<div class="msg-section"><h4>好友信息</h4>';
+            // 好友申请部分
+            if (friendApplies.length) {
+                friendApplies.forEach(a => {
+                    const fullReason = a.reason || '无';
+                    const shortReason = fullReason.length > 20 ? fullReason.substring(0, 20) + '...' : fullReason;
+                    const reasonHtml = fullReason.length > 20
+                        ? `<span>${shortReason}</span> <button class="view-btn" onclick="alert('${fullReason.replace(/'/g, "\\'")}')">详情</button>`
+                        : `<span>${fullReason}</span>`;
+                    friendHtml += `<div class="msg-item">
+                    <p>${a.fromName} 申请加为好友</p>
+                    <p>原因：${reasonHtml}</p>
+                    <button class="view-btn" onclick="viewProfile(${a.fromUserId})">查看资料</button>
+                    <div style="display:flex;gap:10px;margin-top:8px">
+                        <button class="btn-s" style="background:var(--success);flex:1" onclick="handleFriendApply(${a.id},'accept')">同意</button>
+                        <button class="btn-s" style="background:var(--danger);flex:1" onclick="handleFriendApply(${a.id},'reject')">拒绝</button>
+                    </div>
+                </div>`;
+                });
+            }
+            // 好友通知（已接受、被删除等）
+            if (friendNoti.length) {
+                friendNoti.forEach(n => {
+                    friendHtml += `<div class="msg-item">
+                    <p>${n.content}</p>
+                    <span style="font-size:12px;color:#999">${new Date(n.createTime).toLocaleString()}</span>
+                </div>`;
+                });
+            }
+            if (!friendApplies.length && !friendNoti.length) {
+                friendHtml += '<div class="msg-item" style="color:#999;text-align:center">暂无好友信息</div>';
+            }
+            friendHtml += '</div>';
+
+            tab.innerHTML = `<div style="display:flex; gap:20px;">${notiHtml}${applyHtml}${friendHtml}</div>`;
         } catch (e) { tab.innerHTML = "<p>加载失败</p>"; }
     }
 };
+
+// ----- 好友申请处理 -----
+async function handleFriendApply(applyId, action) {
+    const res = await fetch(`http://localhost:8081/friend/handle?applyId=${applyId}&action=${action}`, { method: 'POST' });
+    const r = await res.json();
+    showToast(r.msg, 'success');
+    switchTab('msgs');
+}
+
+// ----- 删除好友 -----
+async function deleteFriend(friendId) {
+    if (!requireLogin()) return;
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    showConfirm('确定删除该好友吗？', async () => {
+        const res = await fetch(`http://localhost:8081/friend/delete?userId=${user.user_id}&friendId=${friendId}`, { method: 'DELETE' });
+        const r = await res.json();
+        showToast(r.msg, r.code === 200 ? 'success' : 'error');
+        if (r.code === 200) switchTab('friends');
+    });
+}
 
 // ----- 队伍操作 -----
 async function dissolveTeam(teamId) {
@@ -412,7 +471,8 @@ function logout() {
         location.href = 'login.html';
     });
 }
-// ----- 初始化（核心修改：启动时校验合法性）-----
+
+// ========== 初始化 ==========
 async function init() {
     let stored = JSON.parse(localStorage.getItem('currentUser')) || {};
     if (stored.user_id) {
@@ -420,32 +480,30 @@ async function init() {
             const res = await fetch("http://localhost:8081/user/info?userId=" + stored.user_id);
             const result = await res.json();
             if (!result.data) {
-                // 服务器查无此人 → 清除本地登录态
                 localStorage.removeItem('currentUser');
                 stored = {};
             } else {
-                // 更新本地存储为最新信息
                 userData = result.data;
                 localStorage.setItem('currentUser', JSON.stringify(userData));
             }
         } catch (e) {
-            // 网络错误也视为未登录
             localStorage.removeItem('currentUser');
             stored = {};
         }
     }
 
-    // 无论是否登录，都更新导航栏
     updateNavUser();
 
-    // 如果最终未登录，强制展示主页（不进入个人中心）
     if (!isLoggedIn()) {
         document.getElementById('p-home').style.display = 'block';
         document.getElementById('p-profile').style.display = 'none';
-        //document.getElementById('p-chat').style.display = 'none';
         renderHome();
     } else {
         renderHome();
+        if (localStorage.getItem('switchToProfile') === 'true') {
+            localStorage.removeItem('switchToProfile');
+            switchP('profile');
+        }
     }
 }
 

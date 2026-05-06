@@ -9,14 +9,47 @@
         body {
             background: #f0f2f5;
             font-family: 'Microsoft YaHei', sans-serif;
-            padding: 30px;
+            padding: 0;
+            /* 去掉整体padding，改为顶部栏布局 */
+            margin: 0;
+        }
+
+        /* ========== 新增：顶部返回栏 ========== */
+        .top-bar {
+            height: 50px;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+
+        .back-btn {
+            cursor: pointer;
+            font-size: 20px;
+            color: #333;
+            text-decoration: none;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .top-bar h4 {
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+            flex: 1;
         }
 
         .match-wrapper {
             max-width: 1000px;
-            margin: 0 auto;
+            margin: 30px auto;
             display: flex;
             gap: 30px;
+            padding: 0 20px;
+            /* 两侧留白 */;
         }
 
         .filter-panel {
@@ -98,7 +131,7 @@
             padding: 25px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
             overflow-y: auto;
-            max-height: 80vh;
+            max-height: 70vh;
         }
 
             .result-panel h3 {
@@ -272,9 +305,59 @@
                 width: 100%;
             }
         }
+
+        /* Toast样式补充 */
+        .toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 14px 24px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            animation: slideIn 0.4s ease;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+            pointer-events: none;
+        }
+
+        .toast-success {
+            background: #28a745;
+        }
+
+        .toast-error {
+            background: #dc3545;
+        }
+
+        .toast-info {
+            background: #0078d4;
+        }
+
+        .toast-hidden {
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- ========== 新增顶部返回栏 ========== -->
+    <div class="top-bar">
+        <button class="back-btn" onclick="goBackToProfile()">← 返回</button>
+        <h4>队友匹配</h4>
+    </div>
+
     <div class="match-wrapper">
         <div class="filter-panel">
             <h3>🎯 匹配筛选</h3>
@@ -329,7 +412,7 @@
         </div>
         <div class="result-panel" id="resultContainer">
             <h3>✨ 匹配结果</h3>
-            <div class="empty-state">选择条件后点击“开始匹配”</div>
+            <div class="empty-state">选择条件后点击"开始匹配"</div>
         </div>
     </div>
     <div id="progressModal" class="progress-modal">
@@ -342,6 +425,12 @@
     </div>
 
     <script>
+        // ========== 新增：返回"我的"界面 ==========
+        function goBackToProfile() {
+            localStorage.setItem('switchToProfile', 'true');
+            location.href = 'index.html';
+        }
+
         // match.html 的 <script> 最前面插入
         window.onload = function () {
             const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -416,42 +505,44 @@
                 const score = u.matchScore || 75;
                 const avatar = u.avatar ? (u.avatar.startsWith('http') ? u.avatar : 'http://localhost:8081' + u.avatar) : 'https://ui-avatars.com/api/?name=User';
                 html += `
-                    <div class="match-card">
-                        <img class="match-avatar" src="${avatar}" onerror="this.src='https://ui-avatars.com/api/?name=User'">
-                        <div class="match-info">
-                            <div class="nick">${u.nick || '用户'}</div>
-                            <span class="game">${u.gameName || '未知游戏'}</span>
-                            <span class="time-badge">${u.playtime || ''}</span>
-                        </div>
-                        <div class="match-score">
-                            <div class="score-circle" style="--p:${score};">
-                                <span class="score-value">${score}%</span>
-                            </div>
-                            <span style="font-size:11px;color:#888;">匹配度</span>
-                        </div>
-                        <button class="friend-btn" onclick="sendFriendApply(${u.userId})">➕ 好友申请</button>
-                    </div>`;
+                                <div class="match-card">
+                                    <img class="match-avatar" src="${avatar}" onerror="this.src='https://ui-avatars.com/api/?name=User'">
+                                    <div class="match-info">
+                                        <div class="nick">${u.nick || '用户'}</div>
+                                        <span class="game">${u.gameName || '未知游戏'}</span>
+                                        <span class="time-badge">${u.playtime || ''}</span>
+                                    </div>
+                                    <div class="match-score">
+                                        <div class="score-circle" style="--p:${score};">
+                                            <span class="score-value">${score}%</span>
+                                        </div>
+                                        <span style="font-size:11px;color:#888;">匹配度</span>
+                                    </div>
+                                    <button class="friend-btn" onclick="showApplyDialog(${u.userId}, '${u.nick || '用户'}')">➕ 好友申请</button>
+                                </div>`;
             });
             resultContainer.innerHTML = html;
         }
 
-        async function sendFriendApply(toUserId) {
+        function showApplyDialog(toUserId, nick) {
+            const reason = prompt(`向 ${nick} 发送好友申请，请输入申请原因：`);
+            if (reason === null) return; // 取消
+            // 调用之前的 sendFriendApply，增加 reason 参数
+            sendFriendApply(toUserId, reason);
+        }
+
+        async function sendFriendApply(toUserId, reason) {
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            if (!currentUser) {
-                showToast('请先登录', 'error');
-                return;
-            }
+            if (!currentUser) { showToast('请先登录', 'error'); return; }
             try {
-                const res = await fetch(`http://localhost:8081/friend/apply?toUserId=${toUserId}&fromUserId=${currentUser.user_id}`, { method: 'POST' });
+                const res = await fetch(`http://localhost:8081/friend/apply?fromUserId=${currentUser.user_id}&toUserId=${toUserId}&reason=${encodeURIComponent(reason || '')}`, { method: 'POST' });
                 const result = await res.json();
                 if (result.code === 200) {
                     showToast('好友申请已发送', 'success');
                 } else {
                     showToast(result.msg || '申请失败', 'error');
                 }
-            } catch (e) {
-                showToast('请求失败', 'error');
-            }
+            } catch (e) { showToast('请求失败', 'error'); }
         }
     </script>
 </body>

@@ -209,10 +209,17 @@
         </div>
 
         <button class="btn-submit" onclick="doPublish()">立 即 发 布</button>
-        <button class="btn-cancel" onclick="location.href='index.html'">取消</button>
+        <!-- ========== 修改：取消按钮 → 返回"我的"界面 ========== -->
+        <button class="btn-cancel" onclick="goBackToProfile()">取消</button>
     </div>
 
     <script>
+        // ========== 新增：返回"我的"界面 ==========
+        function goBackToProfile() {
+            localStorage.setItem('switchToProfile', 'true');
+            location.href = 'index.html';
+        }
+
         // create-team.html 的 <script> 最前面插入
         window.onload = function () {
             const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -294,6 +301,8 @@
                 let result = await res.json();
                 if (result.code === 200) {
                     showToast("发布成功！", "success");
+                    // 发布成功后也返回"我的"界面
+                    localStorage.setItem('switchToProfile', 'true');
                     setTimeout(() => { location.href = "index.html"; }, 800);
                 } else {
                     showToast("失败：" + result.msg, "error");

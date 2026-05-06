@@ -109,7 +109,7 @@
             <span onclick="switchP('home')" id="n-home" class="active">主页</span>
             <span onclick="switchP('profile')" id="n-profile">我的</span>
             <!-- 👇 新增这一行 -->
-            <!--<span onclick="goToIfLogin('chat.html')" id="n-chat">聊天</span>-->
+            <span onclick="goToIfLogin('chat.html')" id="n-chat">聊天</span>
         </div>
         <div class="user-info-nav" onclick="switchP('profile')">
             <img id="nav-avatar" src="https://ui-avatars.com/api/?name=用户">
@@ -150,6 +150,7 @@
                 <div style="display:flex; margin-bottom:15px;">
                     <button id="t-teams" class="tab-btn" onclick="switchTab('teams')">我的队伍</button>
                     <button id="t-msgs" class="tab-btn" onclick="switchTab('msgs')">我的消息</button>
+                    <button id="t-friends" class="tab-btn" onclick="switchTab('friends')">好友</button>
                 </div>
                 <div id="tab-content"></div>
             </div>

@@ -16,300 +16,475 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
-        .edit-left { flex: 1; text-align: left; }
-        .edit-right { flex: 1; border-left: 1px solid #eee; padding-left: 40px; }
-        .req { color: red; margin-left: 4px; font-weight: bold; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-size: 14px; color: #666; }
-        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .avatar-edit { width: 150px; height: 150px; border-radius: 15px; object-fit: cover; cursor: pointer; border: 2px dashed #ccc; }
-        .btn-submit { padding: 12px 20px; background: #0078d4; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
-        .btn-cancel { padding: 12px 20px; background: #eee; color: #333; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
-        .time-row { display: flex; gap: 8px; align-items: center; }
-        .time-row input { flex: 1; }
-        .confirm-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:999; display:none; }
-        .confirm-box { background:white; border-radius:14px; padding:25px 30px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.2); min-width:300px; }
-        .confirm-box p { margin:15px 0 25px; font-size:15px; color:#333; }
-        .confirm-buttons { display:flex; gap:10px; justify-content:center; }
-        .confirm-btn { padding:8px 20px; border:none; border-radius:6px; cursor:pointer; font-size:13px; }
-        .confirm-btn-primary { background:#0078d4; color:white; }
-        .confirm-btn-default { background:#ddd; color:#333; }
-        .profile-hint { background:#fff3cd; border:1px solid #ffeeba; color:#856404; padding:12px 20px; border-radius:8px; margin-bottom:25px; text-align:center; font-size:14px; display:none; }
-        .profile-hint.show { display:block; }
-        .toast { position:fixed; top:30px; right:30px; padding:14px 24px; border-radius:10px; color:white; font-weight:500; z-index:9999; animation:slideIn 0.4s ease; box-shadow:0 6px 18px rgba(0,0,0,0.15); pointer-events:none; }
-        .toast-success { background:#28a745; }
-        .toast-error { background:#dc3545; }
-        .toast-info { background:#0078d4; }
-        .toast-hidden { opacity:0; transition:opacity 0.4s; }
-        @keyframes slideIn { from{transform:translateX(100px);opacity:0;} to{transform:translateX(0);opacity:1;} }
+
+        .edit-left {
+            flex: 1;
+            text-align: left;
+        }
+
+        .edit-right {
+            flex: 1;
+            border-left: 1px solid #eee;
+            padding-left: 40px;
+        }
+
+        .req {
+            color: red;
+            margin-left: 4px;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-size: 14px;
+                color: #666;
+            }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .avatar-edit {
+            width: 150px;
+            height: 150px;
+            border-radius: 15px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px dashed #ccc;
+        }
+
+        .btn-submit {
+            padding: 12px 20px;
+            background: #0078d4;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-cancel {
+            padding: 12px 20px;
+            background: #eee;
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .time-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+            .time-row input {
+                flex: 1;
+            }
+
+        .confirm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            display: none;
+        }
+
+        .confirm-box {
+            background: white;
+            border-radius: 14px;
+            padding: 25px 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-width: 300px;
+        }
+
+            .confirm-box p {
+                margin: 15px 0 25px;
+                font-size: 15px;
+                color: #333;
+            }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .confirm-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .confirm-btn-primary {
+            background: #0078d4;
+            color: white;
+        }
+
+        .confirm-btn-default {
+            background: #ddd;
+            color: #333;
+        }
+
+        .profile-hint {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 14px;
+            display: none;
+        }
+
+            .profile-hint.show {
+                display: block;
+            }
+
+        .toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 14px 24px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            animation: slideIn 0.4s ease;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+            pointer-events: none;
+        }
+
+        .toast-success {
+            background: #28a745;
+        }
+
+        .toast-error {
+            background: #dc3545;
+        }
+
+        .toast-info {
+            background: #0078d4;
+        }
+
+        .toast-hidden {
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="edit-page">
-    <div class="edit-left">
-        <div id="profile-hint" class="profile-hint">⚠️ 请完善个人资料，这样才能正常使用组队、匹配等功能哦！</div>
-        <div class="form-group">
-            <label>点击更换头像</label>
-            <input type="file" id="ipt-file" accept="image/*" style="display:none" onchange="handleFile(event)">
-            <img id="ipt-avatar-pre" class="avatar-edit" onclick="document.getElementById('ipt-file').click()">
-        </div>
-        <div class="form-group">
-            <label>账号名称 <span class="req">*</span></label>
-            <input type="text" id="ipt-nick" class="form-control" placeholder="请输入昵称">
-        </div>
-        <div class="form-group">
-            <label>个人简介</label>
-            <textarea id="ipt-intro" class="form-control" style="height:120px;" placeholder="向大家介绍一下你自己吧"></textarea>
-        </div>
-    </div>
-    <div class="edit-right">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+    <div class="edit-page">
+        <div class="edit-left">
+            <div id="profile-hint" class="profile-hint">⚠️ 请完善个人资料，这样才能正常使用组队、匹配等功能哦！</div>
             <div class="form-group">
-                <label>性别 <span class="req">*</span></label>
-                <select id="ipt-gender" class="form-control"><option value="男">男</option><option value="女">女</option></select>
+                <label>点击更换头像</label>
+                <input type="file" id="ipt-file" accept="image/*" style="display:none" onchange="handleFile(event)">
+                <img id="ipt-avatar-pre" class="avatar-edit" onclick="document.getElementById('ipt-file').click()">
             </div>
             <div class="form-group">
-                <label>年龄 <span class="req">*</span></label>
-                <input type="number" id="ipt-age" class="form-control" placeholder="12-100" min="12" max="100">
+                <label>账号名称 <span class="req">*</span></label>
+                <input type="text" id="ipt-nick" class="form-control" placeholder="请输入昵称">
+            </div>
+            <div class="form-group">
+                <label>个人简介</label>
+                <textarea id="ipt-intro" class="form-control" style="height:120px;" placeholder="向大家介绍一下你自己吧"></textarea>
             </div>
         </div>
-        <div class="form-group">
-            <label>常玩游戏 <span class="req">*</span></label>
-            <select id="ipt-game-select" class="form-control" onchange="checkOtherGame(this.value)">
-                <option value="">-- 请选择游戏 --</option>
-                <option value="王者荣耀">王者荣耀</option><option value="英雄联盟">英雄联盟</option>
-                <option value="和平精英">和平精英</option><option value="原神">原神</option>
-                <option value="CS:GO">CS:GO</option><option value="Dota2">Dota2</option>
-                <option value="Apex英雄">Apex英雄</option><option value="守望先锋">守望先锋</option>
-                <option value="我的世界">我的世界</option><option value="光遇">光遇</option>
-                <option value="其他">其他...</option>
-            </select>
-            <input type="text" id="ipt-game-other" class="form-control" style="display:none; margin-top:10px;" placeholder="请输入游戏名称">
+        <div class="edit-right">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>性别 <span class="req">*</span></label>
+                    <select id="ipt-gender" class="form-control"><option value="男">男</option><option value="女">女</option></select>
+                </div>
+                <div class="form-group">
+                    <label>年龄 <span class="req">*</span></label>
+                    <input type="number" id="ipt-age" class="form-control" placeholder="12-100" min="12" max="100">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>常玩游戏 <span class="req">*</span></label>
+                <select id="ipt-game-select" class="form-control" onchange="checkOtherGame(this.value)">
+                    <option value="">-- 请选择游戏 --</option>
+                    <option value="王者荣耀">王者荣耀</option>
+                    <option value="英雄联盟">英雄联盟</option>
+                    <option value="和平精英">和平精英</option>
+                    <option value="原神">原神</option>
+                    <option value="CS:GO">CS:GO</option>
+                    <option value="Dota2">Dota2</option>
+                    <option value="Apex英雄">Apex英雄</option>
+                    <option value="守望先锋">守望先锋</option>
+                    <option value="我的世界">我的世界</option>
+                    <option value="光遇">光遇</option>
+                    <option value="其他">其他...</option>
+                </select>
+                <input type="text" id="ipt-game-other" class="form-control" style="display:none; margin-top:10px;" placeholder="请输入游戏名称">
+            </div>
+            <div class="form-group">
+                <label>性格 <span class="req">*</span></label>
+                <select id="ipt-personality" class="form-control">
+                    <option value="">-- 选择性格 --</option>
+                    <option value="稳健">稳健</option>
+                    <option value="活泼">活泼</option>
+                    <option value="话痨">话痨</option>
+                    <option value="安静">安静</option>
+                    <option value="佛系">佛系</option>
+                    <option value="好胜">好胜</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>游玩时段 <span class="req">*</span></label>
+                <div class="time-row">
+                    <input type="time" id="ipt-playtime-start" class="form-control" value="18:00">
+                    <span>至</span>
+                    <input type="time" id="ipt-playtime-end" class="form-control" value="22:00">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>匹配需求 <span class="req">*</span></label>
+                <select id="ipt-matchneed" class="form-control">
+                    <option value="">-- 选择需求 --</option>
+                    <option value="开黑上分">开黑上分</option>
+                    <option value="娱乐休闲">娱乐休闲</option>
+                    <option value="固定队友">固定队友</option>
+                    <option value="萌新带飞">萌新带飞</option>
+                    <option value="聊天交友">聊天交友</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>联系方式 <span class="req">*</span></label>
+                <input type="text" id="ipt-contact" class="form-control" placeholder="微信 / 游戏 ID">
+            </div>
+            <div style="margin-top: 30px; display: flex; gap: 15px;">
+                <button class="btn-submit" onclick="doSave()">保存修改</button>
+                <button class="btn-cancel" onclick="handleCancel()">取消</button>
+            </div>
+            <p style="font-size: 12px; color: #999; margin-top: 20px;">创建时间：<span id="txt-ctime"></span></p>
         </div>
-        <div class="form-group">
-            <label>性格 <span class="req">*</span></label>
-            <select id="ipt-personality" class="form-control">
-                <option value="">-- 选择性格 --</option>
-                <option value="稳健">稳健</option><option value="活泼">活泼</option>
-                <option value="话痨">话痨</option><option value="安静">安静</option>
-                <option value="佛系">佛系</option><option value="好胜">好胜</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>游玩时段 <span class="req">*</span></label>
-            <div class="time-row">
-                <input type="time" id="ipt-playtime-start" class="form-control" value="18:00">
-                <span>至</span>
-                <input type="time" id="ipt-playtime-end" class="form-control" value="22:00">
+    </div>
+    <div id="confirmModal" class="confirm-overlay">
+        <div class="confirm-box">
+            <p>您有未保存的修改，确定离开吗？</p>
+            <div class="confirm-buttons">
+                <button class="confirm-btn confirm-btn-default" onclick="confirmLeave(false)">取消</button>
+                <button class="confirm-btn confirm-btn-default" onclick="confirmLeave('leave')">不保存</button>
+                <button class="confirm-btn confirm-btn-primary" onclick="confirmLeave('save')">保存并离开</button>
             </div>
         </div>
-        <div class="form-group">
-            <label>匹配需求 <span class="req">*</span></label>
-            <select id="ipt-matchneed" class="form-control">
-                <option value="">-- 选择需求 --</option>
-                <option value="开黑上分">开黑上分</option><option value="娱乐休闲">娱乐休闲</option>
-                <option value="固定队友">固定队友</option><option value="萌新带飞">萌新带飞</option>
-                <option value="聊天交友">聊天交友</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>联系方式 <span class="req">*</span></label>
-            <input type="text" id="ipt-contact" class="form-control" placeholder="微信 / 游戏 ID">
-        </div>
-        <div style="margin-top: 30px; display: flex; gap: 15px;">
-            <button class="btn-submit" onclick="doSave()">保存修改</button>
-            <button class="btn-cancel" onclick="handleCancel()">取消</button>
-        </div>
-        <p style="font-size: 12px; color: #999; margin-top: 20px;">创建时间：<span id="txt-ctime"></span></p>
     </div>
-</div>
-<div id="confirmModal" class="confirm-overlay">
-    <div class="confirm-box">
-        <p>您有未保存的修改，确定离开吗？</p>
-        <div class="confirm-buttons">
-            <button class="confirm-btn confirm-btn-default" onclick="confirmLeave(false)">取消</button>
-            <button class="confirm-btn confirm-btn-default" onclick="confirmLeave('leave')">不保存</button>
-            <button class="confirm-btn confirm-btn-primary" onclick="confirmLeave('save')">保存并离开</button>
-        </div>
-    </div>
-</div>
-<script>
-    function showToast(msg, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = 'toast toast-' + type;
-        toast.textContent = msg || '操作完成';
-        document.body.appendChild(toast);
-        setTimeout(() => { toast.classList.add('toast-hidden'); setTimeout(() => toast.remove(), 400); }, 2500);
-    }
-    function requireLogin() {
-        const user = JSON.parse(localStorage.getItem('currentUser'));
-        if (!user || !user.user_id) { showToast("请先登录", "error"); return false; }
-        return true;
-    }
-    let userData = {}, currentAvatar = "", initialData = {}, isSaving = false;
+    <script>
+        function showToast(msg, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.textContent = msg || '操作完成';
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.classList.add('toast-hidden'); setTimeout(() => toast.remove(), 400); }, 2500);
+        }
+        function requireLogin() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user || !user.user_id) { showToast("请先登录", "error"); return false; }
+            return true;
+        }
+        let userData = {}, currentAvatar = "", initialData = {}, isSaving = false;
 
-    async function init() {
-        if (localStorage.getItem('needCompleteProfile') === 'true') {
-            document.getElementById('profile-hint').classList.add('show');
-        }
-        if (!requireLogin()) { setTimeout(() => location.href = 'login.html', 1500); return; }
-        const local = JSON.parse(localStorage.getItem('currentUser')) || {};
-        const userId = local.user_id;
-        try {
-            const res = await fetch("http://localhost:8081/user/info?userId=" + userId);
-            const result = await res.json();
-            userData = result.data || {};
-            currentAvatar = userData.avatar || "";
-            document.getElementById('ipt-avatar-pre').src = currentAvatar ? "http://localhost:8081" + currentAvatar : 'https://via.placeholder.com/150';
-            document.getElementById('ipt-nick').value = userData.nick || '';
-            document.getElementById('ipt-intro').value = userData.introduction || '';
-            document.getElementById('ipt-gender').value = userData.gender == 1 ? "男" : "女";
-            document.getElementById('ipt-age').value = userData.age || '';
-            document.getElementById('ipt-contact').value = userData.contact || '';
-            document.getElementById('txt-ctime').innerText = userData.create_time || '';
-            document.getElementById('ipt-personality').value = userData.personality || '';
-            document.getElementById('ipt-matchneed').value = userData.matchneed || '';
-            const games = ["王者荣耀","英雄联盟","和平精英","原神","CS:GO","Dota2","Apex英雄","守望先锋","我的世界","光遇"];
-            const game = userData.game_name || "";
-            if (games.includes(game)) {
-                document.getElementById('ipt-game-select').value = game;
-            } else if (game) {
-                document.getElementById('ipt-game-select').value = "其他";
-                document.getElementById('ipt-game-other').style.display = "block";
-                document.getElementById('ipt-game-other').value = game;
+        async function init() {
+            if (localStorage.getItem('needCompleteProfile') === 'true') {
+                document.getElementById('profile-hint').classList.add('show');
             }
-            const playtime = userData.playtime || "";
-            if (playtime.includes('-')) {
-                const parts = playtime.split('-');
-                document.getElementById('ipt-playtime-start').value = parts[0] || "18:00";
-                document.getElementById('ipt-playtime-end').value = parts[1] || "22:00";
+            if (!requireLogin()) { setTimeout(() => location.href = 'login.html', 1500); return; }
+            const local = JSON.parse(localStorage.getItem('currentUser')) || {};
+            const userId = local.user_id;
+            try {
+                const res = await fetch("http://localhost:8081/user/info?userId=" + userId);
+                const result = await res.json();
+                userData = result.data || {};
+                currentAvatar = userData.avatar || "";
+                document.getElementById('ipt-avatar-pre').src = currentAvatar ? "http://localhost:8081" + currentAvatar : 'https://via.placeholder.com/150';
+                document.getElementById('ipt-nick').value = userData.nick || '';
+                document.getElementById('ipt-intro').value = userData.introduction || '';
+                document.getElementById('ipt-gender').value = userData.gender == 1 ? "男" : "女";
+                document.getElementById('ipt-age').value = userData.age || '';
+                document.getElementById('ipt-contact').value = userData.contact || '';
+                document.getElementById('txt-ctime').innerText = userData.create_time || '';
+                document.getElementById('ipt-personality').value = userData.personality || '';
+                document.getElementById('ipt-matchneed').value = userData.matchneed || '';
+                const games = ["王者荣耀", "英雄联盟", "和平精英", "原神", "CS:GO", "Dota2", "Apex英雄", "守望先锋", "我的世界", "光遇"];
+                const game = userData.game_name || "";
+                if (games.includes(game)) {
+                    document.getElementById('ipt-game-select').value = game;
+                } else if (game) {
+                    document.getElementById('ipt-game-select').value = "其他";
+                    document.getElementById('ipt-game-other').style.display = "block";
+                    document.getElementById('ipt-game-other').value = game;
+                }
+                const playtime = userData.playtime || "";
+                if (playtime.includes('-')) {
+                    const parts = playtime.split('-');
+                    document.getElementById('ipt-playtime-start').value = parts[0] || "18:00";
+                    document.getElementById('ipt-playtime-end').value = parts[1] || "22:00";
+                }
+                saveInitialData();
+            } catch (e) { console.error("加载失败", e); }
+        }
+        function saveInitialData() {
+            initialData = {
+                nick: document.getElementById('ipt-nick').value,
+                intro: document.getElementById('ipt-intro').value,
+                gender: document.getElementById('ipt-gender').value,
+                age: document.getElementById('ipt-age').value,
+                game: document.getElementById('ipt-game-select').value,
+                gameOther: document.getElementById('ipt-game-other').value,
+                personality: document.getElementById('ipt-personality').value,
+                timeStart: document.getElementById('ipt-playtime-start').value,
+                timeEnd: document.getElementById('ipt-playtime-end').value,
+                matchneed: document.getElementById('ipt-matchneed').value,
+                contact: document.getElementById('ipt-contact').value,
+                avatar: currentAvatar
+            };
+        }
+        function hasChanges() {
+            const now = { ...initialData };
+            // 简单判断就不重新构造了，直接比较json字符串
+            const current = {
+                nick: document.getElementById('ipt-nick').value,
+                intro: document.getElementById('ipt-intro').value,
+                gender: document.getElementById('ipt-gender').value,
+                age: document.getElementById('ipt-age').value,
+                game: document.getElementById('ipt-game-select').value,
+                gameOther: document.getElementById('ipt-game-other').value,
+                personality: document.getElementById('ipt-personality').value,
+                timeStart: document.getElementById('ipt-playtime-start').value,
+                timeEnd: document.getElementById('ipt-playtime-end').value,
+                matchneed: document.getElementById('ipt-matchneed').value,
+                contact: document.getElementById('ipt-contact').value,
+                avatar: currentAvatar
+            };
+            return JSON.stringify(current) !== JSON.stringify(initialData);
+        }
+        function handleCancel() {
+            if (hasChanges()) {
+                document.getElementById('confirmModal').style.display = 'flex';
+            } else {
+                // 无修改，直接返回"我的"界面
+                localStorage.removeItem('needCompleteProfile');
+                localStorage.setItem('switchToProfile', 'true');
+                location.href = 'index.html';
             }
-            saveInitialData();
-        } catch(e) { console.error("加载失败", e); }
-    }
-    function saveInitialData() {
-        initialData = {
-            nick: document.getElementById('ipt-nick').value,
-            intro: document.getElementById('ipt-intro').value,
-            gender: document.getElementById('ipt-gender').value,
-            age: document.getElementById('ipt-age').value,
-            game: document.getElementById('ipt-game-select').value,
-            gameOther: document.getElementById('ipt-game-other').value,
-            personality: document.getElementById('ipt-personality').value,
-            timeStart: document.getElementById('ipt-playtime-start').value,
-            timeEnd: document.getElementById('ipt-playtime-end').value,
-            matchneed: document.getElementById('ipt-matchneed').value,
-            contact: document.getElementById('ipt-contact').value,
-            avatar: currentAvatar
-        };
-    }
-    function hasChanges() {
-        const now = { ...initialData };
-        // 简单判断就不重新构造了，直接比较json字符串
-        const current = {
-            nick: document.getElementById('ipt-nick').value,
-            intro: document.getElementById('ipt-intro').value,
-            gender: document.getElementById('ipt-gender').value,
-            age: document.getElementById('ipt-age').value,
-            game: document.getElementById('ipt-game-select').value,
-            gameOther: document.getElementById('ipt-game-other').value,
-            personality: document.getElementById('ipt-personality').value,
-            timeStart: document.getElementById('ipt-playtime-start').value,
-            timeEnd: document.getElementById('ipt-playtime-end').value,
-            matchneed: document.getElementById('ipt-matchneed').value,
-            contact: document.getElementById('ipt-contact').value,
-            avatar: currentAvatar
-        };
-        return JSON.stringify(current) !== JSON.stringify(initialData);
-    }
-    function handleCancel() {
-        if (hasChanges()) {
-            document.getElementById('confirmModal').style.display = 'flex';
-        } else {
-            localStorage.removeItem('needCompleteProfile');
-            localStorage.setItem('switchToProfile', 'true');
-            location.href = 'index.html';
         }
-    }
-    function confirmLeave(action) {
-        document.getElementById('confirmModal').style.display = 'none';
-        if (action === 'save') {
-            doSave(true);
-        } else if (action === 'leave') {
-            localStorage.removeItem('needCompleteProfile');
-            localStorage.setItem('switchToProfile', 'true');
-            location.href = 'index.html';
+        function confirmLeave(action) {
+            document.getElementById('confirmModal').style.display = 'none';
+            if (action === 'save') {
+                doSave(true);
+            } else if (action === 'leave') {
+                // 不保存，返回"我的"界面
+                localStorage.removeItem('needCompleteProfile');
+                localStorage.setItem('switchToProfile', 'true');
+                location.href = 'index.html';
+            }
         }
-    }
-    function checkOtherGame(val) {
-        document.getElementById('ipt-game-other').style.display = val === "其他" ? "block" : "none";
-    }
-    async function handleFile(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        let fd = new FormData();
-        fd.append("file", file);
-        let res = await fetch("http://localhost:8081/file/upload", { method: "POST", body: fd });
-        currentAvatar = await res.text();
-        document.getElementById('ipt-avatar-pre').src = "http://localhost:8081" + currentAvatar;
-    }
-    async function doSave(fromCancel = false) {
-        if (!requireLogin()) return;
-        if (!fromCancel && !hasChanges()) {
-            localStorage.removeItem('needCompleteProfile');
-            localStorage.setItem('switchToProfile', 'true');
-            location.href = "index.html";
-            return;
+        function checkOtherGame(val) {
+            document.getElementById('ipt-game-other').style.display = val === "其他" ? "block" : "none";
         }
-        if (isSaving) return;
-        isSaving = true;
-        const gameSel = document.getElementById('ipt-game-select').value;
-        const gameOther = document.getElementById('ipt-game-other').value;
-        const playtimeStart = document.getElementById('ipt-playtime-start').value;
-        const playtimeEnd = document.getElementById('ipt-playtime-end').value;
-        const updated = {
-            user_id: userData.user_id,
-            nick: document.getElementById('ipt-nick').value.trim(),
-            gender: document.getElementById('ipt-gender').value === "男" ? 1 : 0,
-            age: document.getElementById('ipt-age').value,
-            contact: document.getElementById('ipt-contact').value.trim(),
-            game_name: gameSel === "其他" ? gameOther : gameSel,
-            game_rank: userData.game_rank,
-            personality: document.getElementById('ipt-personality').value,
-            playtime: playtimeStart + '-' + playtimeEnd,
-            matchneed: document.getElementById('ipt-matchneed').value,
-            introduction: document.getElementById('ipt-intro').value,
-            avatar: currentAvatar
-        };
-        if (!updated.nick || !updated.age || !updated.contact || !updated.game_name || !updated.personality || !updated.playtime || !updated.matchneed) {
-            showToast("请填写所有必填项！", "error");
-            isSaving = false;
-            return;
+        async function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            let fd = new FormData();
+            fd.append("file", file);
+            let res = await fetch("http://localhost:8081/file/upload", { method: "POST", body: fd });
+            currentAvatar = await res.text();
+            document.getElementById('ipt-avatar-pre').src = "http://localhost:8081" + currentAvatar;
         }
-        if (updated.age < 12 || updated.age > 100) {
-            showToast("年龄需在12-100之间", "error");
-            isSaving = false;
-            return;
+        async function doSave(fromCancel = false) {
+            if (!requireLogin()) return;
+            if (!fromCancel && !hasChanges()) {
+                // 无修改，直接返回"我的"界面
+                localStorage.removeItem('needCompleteProfile');
+                localStorage.setItem('switchToProfile', 'true');
+                location.href = "index.html";
+                return;
+            }
+            if (isSaving) return;
+            isSaving = true;
+            const gameSel = document.getElementById('ipt-game-select').value;
+            const gameOther = document.getElementById('ipt-game-other').value;
+            const playtimeStart = document.getElementById('ipt-playtime-start').value;
+            const playtimeEnd = document.getElementById('ipt-playtime-end').value;
+            const updated = {
+                user_id: userData.user_id,
+                nick: document.getElementById('ipt-nick').value.trim(),
+                gender: document.getElementById('ipt-gender').value === "男" ? 1 : 0,
+                age: document.getElementById('ipt-age').value,
+                contact: document.getElementById('ipt-contact').value.trim(),
+                game_name: gameSel === "其他" ? gameOther : gameSel,
+                game_rank: userData.game_rank,
+                personality: document.getElementById('ipt-personality').value,
+                playtime: playtimeStart + '-' + playtimeEnd,
+                matchneed: document.getElementById('ipt-matchneed').value,
+                introduction: document.getElementById('ipt-intro').value,
+                avatar: currentAvatar
+            };
+            if (!updated.nick || !updated.age || !updated.contact || !updated.game_name || !updated.personality || !updated.playtime || !updated.matchneed) {
+                showToast("请填写所有必填项！", "error");
+                isSaving = false;
+                return;
+            }
+            if (updated.age < 12 || updated.age > 100) {
+                showToast("年龄需在12-100之间", "error");
+                isSaving = false;
+                return;
+            }
+            try {
+                const res = await fetch("http://localhost:8081/user/update", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(updated)
+                });
+                const result = await res.json();
+                showToast(result.msg || "保存成功", "success");
+                localStorage.setItem('currentUser', JSON.stringify(updated));
+                localStorage.removeItem('needCompleteProfile');
+                // 保存成功后返回"我的"界面
+                localStorage.setItem('switchToProfile', 'true');
+                setTimeout(() => { location.href = "index.html"; }, 800);
+            } catch (e) {
+                console.error(e);
+                showToast("保存失败，网络错误", "error");
+                isSaving = false;
+            }
         }
-        try {
-            const res = await fetch("http://localhost:8081/user/update", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(updated)
-            });
-            const result = await res.json();
-            showToast(result.msg || "保存成功", "success");
-            localStorage.setItem('currentUser', JSON.stringify(updated));
-            localStorage.removeItem('needCompleteProfile');
-            localStorage.setItem('switchToProfile', 'true');
-            setTimeout(() => { location.href = "index.html"; }, 800);
-        } catch(e) {
-            console.error(e);
-            showToast("保存失败，网络错误", "error");
-            isSaving = false;
-        }
-    }
-    init();
-</script>
+        init();
+    </script>
 </body>
 </html>
