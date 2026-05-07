@@ -27,7 +27,7 @@
         .profile-row span { font-size: 15px; color: #333; margin-left: 8px; }
         .close-profile { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #999; }
         .profile-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index:2000; align-items: center; justify-content: center; }
-.profile-modal.show { display: flex; }
+        .profile-modal.show { display: flex; }
     `;
     document.head.appendChild(style);
 
@@ -142,10 +142,15 @@ window.closeProfile = function () {
     document.getElementById('profileModal').classList.remove('show');
 };
 
-// ----- 主页渲染 -----
+// ----- 主页渲染（带排序）-----
 async function renderHome() {
     try {
-        const res = await fetch("http://localhost:8081/team/list");
+        const user = JSON.parse(localStorage.getItem('currentUser')) || {};
+        let url = "http://localhost:8081/team/list";
+        if (user.user_id) {
+            url += `?userId=${user.user_id}`;
+        }
+        const res = await fetch(url);
         const result = await res.json();
         const list = result.data || [];
         document.getElementById("home-list").innerHTML = list.map(t => `
@@ -154,7 +159,7 @@ async function renderHome() {
                 <div class="card-body">
                     <h3>${t.title}</h3>
                     <p><span class="btn-s" style="background:var(--danger)">队长</span> ${t.leader}</p>
-                    <p><span class="btn-s" style="background:var(--success)">需求</span> ${t.need}</p>
+                    <p><span class="btn-s" style="background:var(--success)">游戏</span> ${t.need}</p>
                 </div>
             </div>
         `).join('');
@@ -163,7 +168,7 @@ async function renderHome() {
     }
 }
 
-// ----- 队伍详情 & 申请 -----
+// ----- 队伍详情 & 评论（修改头像判断）-----
 window.showDetail = async function (id) {
     if (!requireLogin()) return;
     const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -179,30 +184,131 @@ window.showDetail = async function (id) {
     const t = result.data;
     if (!t) return showToast("队伍不存在", "error");
 
-    const commentsHtml = t.comments?.length ? t.comments.map(c =>
-        `<div class="comment-item">....</div>`).join('') : '<p style="color:#999">暂无留言</p>';
+    // 1. 反转评论数组：最早的在上面（后端是最新在前）
+    const comments = (t.comments || []).slice().reverse();
 
+    // 2. 生成评论 HTML（左右布局）
+    const commentsHtml = comments.length ? comments.map(c => {
+        const isMe = (c.userId == user.user_id);
+        const cls = isMe ? 'self' : 'other';
+        const avatarUrl = c.avatar && c.avatar.trim().length > 0
+            ? 'http://localhost:8081' + c.avatar
+            : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.author);
+        return `
+        <div class="comment-item ${cls}">
+            <img class="comment-avatar" src="${avatarUrl}" onerror="this.src='https://ui-avatars.com/api/?name='+encodeURIComponent('${c.author}')">
+            <div class="comment-content">
+                <div class="comment-header">
+                    <span class="comment-author">${c.author}</span>
+                    <span class="comment-time">${c.time}</span>
+                </div>
+                <p class="comment-text">${c.text.replace(/\n/g, '<br>')}</p>
+            </div>
+        </div>`;
+    }).join('') : '<p style="color:#999">暂无留言</p>';
+
+    // 3. 详情弹窗内容（修改“需求”为“游戏”）
     document.getElementById('detail-content').innerHTML = `
         <div class="detail-split">
             <img class="detail-cover" src="http://localhost:8081${t.avatar}">
             <div class="detail-info">
                 <h2>${t.title}</h2>
                 <p><strong>队长：</strong>${t.leader}</p>
-                <p style="color:red"><strong>需求：</strong>${t.need}</p>
+                <p style="color:red"><strong>游戏：</strong>${t.need}</p>
                 <div style="background:#f9f9f9;padding:10px;border-radius:8px">${t.desc}</div>
             </div>
         </div>
         <div class="comment-section">
             <h4>留言 (${t.comments?.length || 0})</h4>
-            <div class="comment-list">${commentsHtml}</div>
+            <div class="comment-list" id="comment-list-${t.id}">${commentsHtml}</div>
             <div class="comment-input-box">
-                <input placeholder="评论功能暂未开通"><button class="btn-s" style="background:var(--primary)">发送</button>
+                <textarea id="comment-input-${t.id}" placeholder="按 Enter 发送，Shift+Enter 换行" rows="1" style="flex:1; padding:8px; border-radius:20px; border:1px solid #ddd; resize:none;"></textarea>
+                <button class="btn-s" style="background:var(--primary);padding:8px 16px; border-radius:20px;" onclick="sendComment(${t.id})">发送</button>
             </div>
         </div>
         ${joined ? '<p style="text-align:center;color:#999;margin-top:15px">你已是队员</p>'
             : `<button class="btn-s" style="background:var(--primary);width:100%;margin-top:15px" onclick="applyJoinTeam(${t.id})">申请加入</button>`}
     `;
+
+    // 4. 自动滚动到留言底部（最新留言）
+    setTimeout(() => {
+        const listEl = document.getElementById(`comment-list-${t.id}`);
+        if (listEl) listEl.scrollTop = listEl.scrollHeight;
+    }, 50);
+
+    // 5. 绑定评论输入框的 Enter 事件
+    const commentInput = document.getElementById(`comment-input-${t.id}`);
+    if (commentInput) {
+        commentInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendComment(t.id);
+            }
+            autoResizeTextarea(commentInput);
+        });
+    }
+
     document.getElementById('detail-modal').style.display = 'block';
+};
+
+// 辅助：自动调整 textarea 高度
+function autoResizeTextarea(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+}
+
+// 发送评论
+window.sendComment = async function (teamId) {
+    if (!requireLogin()) return;
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    const input = document.getElementById(`comment-input-${teamId}`);
+    if (!input) return;
+    const content = input.value.trim();
+    if (!content) return;
+
+    try {
+        const res = await fetch(`http://localhost:8081/team/comment?teamId=${teamId}&userId=${user.user_id}&content=${encodeURIComponent(content)}`, {
+            method: 'POST'
+        });
+        const result = await res.json();
+        if (result.code === 200) {
+            input.value = '';
+            autoResizeTextarea(input);
+            // 刷新评论列表（按正序渲染）
+            const detailRes = await fetch(`http://localhost:8081/team/detail/${teamId}`);
+            const detail = await detailRes.json();
+            if (detail.code === 200) {
+                const comments = (detail.data.comments || []).slice().reverse(); // 反转，最早在上
+                const listEl = document.getElementById(`comment-list-${teamId}`);
+                if (listEl) {
+                    listEl.innerHTML = comments.length ? comments.map(c => {
+                        const isMe = (c.userId == user.user_id);
+                        const cls = isMe ? 'self' : 'other';
+                        const avatarUrl = c.avatar && c.avatar.trim().length > 0
+                            ? 'http://localhost:8081' + c.avatar
+                            : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.author);
+                        return `
+                        <div class="comment-item ${cls}">
+                            <img class="comment-avatar" src="${avatarUrl}" onerror="this.src='https://ui-avatars.com/api/?name='+encodeURIComponent('${c.author}')">
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <span class="comment-author">${c.author}</span>
+                                    <span class="comment-time">${c.time}</span>
+                                </div>
+                                <p class="comment-text">${c.text.replace(/\n/g, '<br>')}</p>
+                            </div>
+                        </div>`;
+                    }).join('') : '<p style="color:#999">暂无留言</p>';
+                    // 滚动到底部
+                    setTimeout(() => { listEl.scrollTop = listEl.scrollHeight; }, 50);
+                }
+            }
+        } else {
+            showToast(result.msg || '评论失败', 'error');
+        }
+    } catch (e) {
+        showToast('网络错误', 'error');
+    }
 };
 
 window.applyJoinTeam = async function (teamId) {
@@ -337,7 +443,6 @@ window.switchTab = async function (type) {
             const friendApplyRes = await fetch(`http://localhost:8081/friend/applies/received?userId=${user.user_id}`);
             const friendApplies = (await friendApplyRes.json()).data || [];
 
-            // 分离队伍通知和好友相关通知
             const teamNoti = allNoti.filter(n => ['dissolve', 'leave', 'join', 'kick'].includes(n.type));
             const friendNoti = allNoti.filter(n => ['friend_accept', 'friend_delete'].includes(n.type));
 
@@ -375,7 +480,6 @@ window.switchTab = async function (type) {
             applyHtml += '</div>';
 
             let friendHtml = '<div class="msg-section"><h4>好友信息</h4>';
-            // 好友申请部分
             if (friendApplies.length) {
                 friendApplies.forEach(a => {
                     const fullReason = a.reason || '无';
@@ -395,7 +499,6 @@ window.switchTab = async function (type) {
     </div>`;
                 });
             }
-            // 好友通知（已接受、被删除等）
             if (friendNoti.length) {
                 friendNoti.forEach(n => {
                     friendHtml += `<div class="msg-item">
@@ -411,24 +514,24 @@ window.switchTab = async function (type) {
 
             tab.innerHTML = `<div style="display:flex; gap:20px;">${notiHtml}${applyHtml}${friendHtml}</div>`;
         } catch (e) { tab.innerHTML = "<p>加载失败</p>"; }
-    }else if (type === 'friends') {
-    try {
-        const res = await fetch(`http://localhost:8081/friend/list?userId=${user.user_id}`);
-        const friends = (await res.json()).data || [];
-        if (!friends.length) { tab.innerHTML = "<p>你还没有好友</p>"; return; }
-        let html = '<div style="display:flex; flex-direction:column; gap:12px;">';
-        friends.forEach(f => {
-            html += `<div style="display:flex; align-items:center; background:#fff; padding:12px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.05); gap:15px;">
+    } else if (type === 'friends') {
+        try {
+            const res = await fetch(`http://localhost:8081/friend/list?userId=${user.user_id}`);
+            const friends = (await res.json()).data || [];
+            if (!friends.length) { tab.innerHTML = "<p>你还没有好友</p>"; return; }
+            let html = '<div style="display:flex; flex-direction:column; gap:12px;">';
+            friends.forEach(f => {
+                html += `<div style="display:flex; align-items:center; background:#fff; padding:12px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.05); gap:15px;">
                 <img src="${f.avatar ? 'http://localhost:8081' + f.avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(f.name)}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;">
                 <span style="font-weight:500; flex:1;">${f.name}</span>
                 <button class="btn-s" style="background:var(--primary);" onclick="viewProfile(${f.friendId})">查看资料</button>
                 <button class="btn-s" style="background:var(--danger);" onclick="deleteFriend(${f.friendId})">删除好友</button>
             </div>`;
-        });
-        html += '</div>';
-        tab.innerHTML = html;
-    } catch (e) { tab.innerHTML = "<p>加载失败</p>"; }
-}
+            });
+            html += '</div>';
+            tab.innerHTML = html;
+        } catch (e) { tab.innerHTML = "<p>加载失败</p>"; }
+    }
 };
 
 // ----- 好友申请处理 -----
@@ -506,7 +609,6 @@ function logout() {
     });
 }
 
-// 为动态生成的“详情”按钮绑定事件
 document.addEventListener('click', function (e) {
     if (e.target.classList.contains('view-btn') && e.target.dataset.reason) {
         showReasonDetail(e.target.dataset.reason);

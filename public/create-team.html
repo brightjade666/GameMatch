@@ -199,9 +199,24 @@
             <label>队伍名称 <span class="req">*</span></label>
             <input type="text" id="team-title" class="form-control" placeholder="给队伍起个响亮的名字（必填）">
         </div>
+        <!-- 表单部分修改 -->
         <div class="form-group">
-            <label>招募需求 <span class="req">*</span></label>
-            <input type="text" id="team-need" class="form-control" placeholder="例如：缺2人，熟悉Vue（必填）">
+            <label>游戏类型 <span class="req">*</span></label>
+            <select id="team-need-select" class="form-control" onchange="handleOtherGame(this.value)">
+                <option value="">-- 请选择游戏 --</option>
+                <option value="王者荣耀">王者荣耀</option>
+                <option value="英雄联盟">英雄联盟</option>
+                <option value="和平精英">和平精英</option>
+                <option value="原神">原神</option>
+                <option value="CS:GO">CS:GO</option>
+                <option value="Dota2">Dota2</option>
+                <option value="Apex英雄">Apex英雄</option>
+                <option value="守望先锋">守望先锋</option>
+                <option value="我的世界">我的世界</option>
+                <option value="光遇">光遇</option>
+                <option value="其他">其他...</option>
+            </select>
+            <input type="text" id="team-need-other" class="form-control" style="display:none; margin-top:10px;" placeholder="请输入游戏名称">
         </div>
         <div class="form-group">
             <label>项目简介</label>
@@ -262,6 +277,12 @@
             }
         }
 
+        function handleOtherGame(val) {
+            const otherInput = document.getElementById("team-need-other");
+            otherInput.style.display = val === "其他" ? "block" : "none";
+            if (val !== "其他") otherInput.value = "";
+        }
+
         async function doPublish() {
             const title = document.getElementById("team-title").value.trim();
             if (!title) {
@@ -269,9 +290,19 @@
                 return;
             }
 
-            const need = document.getElementById("team-need").value.trim();
+            // 获取游戏选择
+            const selectEl = document.getElementById("team-need-select");
+            const otherEl = document.getElementById("team-need-other");
+            let need = selectEl.value;
+            if (need === "其他") {
+                need = otherEl.value.trim();
+                if (!need) {
+                    showToast("请输入游戏名称！", "error");
+                    return;
+                }
+            }
             if (!need) {
-                showToast("请填写招募需求！", "error");
+                showToast("请选择游戏！", "error");
                 return;
             }
 
@@ -282,9 +313,9 @@
             }
 
             const postData = {
-                gameId: 1,
+                gameId: 1, // 固定值可忽略
                 teamName: title,
-                teamNeed: need,
+                teamNeed: need,   // 直接使用选中的或输入的游戏名
                 teamDesc: document.getElementById("team-desc").value.trim() || "无",
                 teamCover: coverPath || "",
                 leaderId: user.user_id,
@@ -301,7 +332,6 @@
                 let result = await res.json();
                 if (result.code === 200) {
                     showToast("发布成功！", "success");
-                    // 发布成功后也返回"我的"界面
                     localStorage.setItem('switchToProfile', 'true');
                     setTimeout(() => { location.href = "index.html"; }, 800);
                 } else {
