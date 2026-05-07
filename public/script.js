@@ -26,6 +26,8 @@
         .profile-row label { font-size: 13px; color: #666; }
         .profile-row span { font-size: 15px; color: #333; margin-left: 8px; }
         .close-profile { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #999; }
+        .profile-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index:2000; align-items: center; justify-content: center; }
+.profile-modal.show { display: flex; }
     `;
     document.head.appendChild(style);
 
@@ -379,17 +381,18 @@ window.switchTab = async function (type) {
                     const fullReason = a.reason || '无';
                     const shortReason = fullReason.length > 20 ? fullReason.substring(0, 20) + '...' : fullReason;
                     const reasonHtml = fullReason.length > 20
-                        ? `<span>${shortReason}</span> <button class="view-btn" onclick="alert('${fullReason.replace(/'/g, "\\'")}')">详情</button>`
+                        ? `<span>${shortReason}</span> <button class="view-btn" data-reason="${fullReason.replace(/"/g, '&quot;').replace(/'/g, '&#39;')}">详情</button>`
                         : `<span>${fullReason}</span>`;
+
                     friendHtml += `<div class="msg-item">
-                    <p>${a.fromName} 申请加为好友</p>
-                    <p>原因：${reasonHtml}</p>
-                    <button class="view-btn" onclick="viewProfile(${a.fromUserId})">查看资料</button>
-                    <div style="display:flex;gap:10px;margin-top:8px">
-                        <button class="btn-s" style="background:var(--success);flex:1" onclick="handleFriendApply(${a.id},'accept')">同意</button>
-                        <button class="btn-s" style="background:var(--danger);flex:1" onclick="handleFriendApply(${a.id},'reject')">拒绝</button>
-                    </div>
-                </div>`;
+        <p>${a.fromName} 申请加为好友</p>
+        <p>原因：${reasonHtml}</p>
+        <button class="view-btn" onclick="viewProfile(${a.fromUserId})">查看资料</button>
+        <div style="display:flex;gap:10px;margin-top:8px">
+            <button class="btn-s" style="background:var(--success);flex:1" onclick="handleFriendApply(${a.id},'accept')">同意</button>
+            <button class="btn-s" style="background:var(--danger);flex:1" onclick="handleFriendApply(${a.id},'reject')">拒绝</button>
+        </div>
+    </div>`;
                 });
             }
             // 好友通知（已接受、被删除等）
@@ -408,7 +411,24 @@ window.switchTab = async function (type) {
 
             tab.innerHTML = `<div style="display:flex; gap:20px;">${notiHtml}${applyHtml}${friendHtml}</div>`;
         } catch (e) { tab.innerHTML = "<p>加载失败</p>"; }
-    }
+    }else if (type === 'friends') {
+    try {
+        const res = await fetch(`http://localhost:8081/friend/list?userId=${user.user_id}`);
+        const friends = (await res.json()).data || [];
+        if (!friends.length) { tab.innerHTML = "<p>你还没有好友</p>"; return; }
+        let html = '<div style="display:flex; flex-direction:column; gap:12px;">';
+        friends.forEach(f => {
+            html += `<div style="display:flex; align-items:center; background:#fff; padding:12px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.05); gap:15px;">
+                <img src="${f.avatar ? 'http://localhost:8081' + f.avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(f.name)}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;">
+                <span style="font-weight:500; flex:1;">${f.name}</span>
+                <button class="btn-s" style="background:var(--primary);" onclick="viewProfile(${f.friendId})">查看资料</button>
+                <button class="btn-s" style="background:var(--danger);" onclick="deleteFriend(${f.friendId})">删除好友</button>
+            </div>`;
+        });
+        html += '</div>';
+        tab.innerHTML = html;
+    } catch (e) { tab.innerHTML = "<p>加载失败</p>"; }
+}
 };
 
 // ----- 好友申请处理 -----
@@ -465,12 +485,33 @@ async function rejectApply(id) {
     switchTab('msgs');
 }
 
+// 显示完整申请原因弹窗
+function showReasonDetail(reason) {
+    const overlay = document.createElement('div');
+    overlay.className = 'profile-modal';
+    overlay.style.display = 'flex';
+    overlay.innerHTML = `
+        <div class="profile-content" style="max-width:350px;">
+            <span class="close-profile" onclick="this.parentElement.parentElement.remove()">×</span>
+            <h4 style="margin-bottom:10px;">申请原因</h4>
+            <p style="word-wrap:break-word; line-height:1.6;">${reason}</p>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
 function logout() {
     showConfirm('确定退出登录吗？', () => {
         localStorage.clear();
         location.href = 'login.html';
     });
 }
+
+// 为动态生成的“详情”按钮绑定事件
+document.addEventListener('click', function (e) {
+    if (e.target.classList.contains('view-btn') && e.target.dataset.reason) {
+        showReasonDetail(e.target.dataset.reason);
+    }
+});
 
 // ========== 初始化 ==========
 async function init() {

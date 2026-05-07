@@ -4,17 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>队友匹配</title>
-    <link rel="stylesheet" href="style.css">
     <style>
         body {
             background: #f0f2f5;
             font-family: 'Microsoft YaHei', sans-serif;
             padding: 0;
-            /* 去掉整体padding，改为顶部栏布局 */
             margin: 0;
         }
 
-        /* ========== 新增：顶部返回栏 ========== */
         .top-bar {
             height: 50px;
             background: #fff;
@@ -49,7 +46,6 @@
             display: flex;
             gap: 30px;
             padding: 0 20px;
-            /* 两侧留白 */;
         }
 
         .filter-panel {
@@ -306,7 +302,6 @@
             }
         }
 
-        /* Toast样式补充 */
         .toast {
             position: fixed;
             top: 30px;
@@ -349,13 +344,68 @@
                 opacity: 1;
             }
         }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .modal-overlay.show {
+                display: flex;
+            }
+
+        .modal-box {
+            background: #fff;
+            border-radius: 14px;
+            padding: 25px;
+            width: 400px;
+            max-width: 90vw;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .action-btn {
+            border: none;
+            border-radius: 6px;
+            padding: 8px 20px;
+            font-size: 13px;
+            cursor: pointer;
+            color: #fff;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: #0078d7;
+        }
     </style>
 </head>
 <body>
-    <!-- ========== 新增顶部返回栏 ========== -->
     <div class="top-bar">
         <button class="back-btn" onclick="goBackToProfile()">← 返回</button>
         <h4>队友匹配</h4>
+    </div>
+
+    <!-- 好友申请弹窗 -->
+    <div id="applyModal" class="modal-overlay">
+        <div class="modal-box" style="width:350px;">
+            <h4 style="margin-bottom:15px;">发送好友申请</h4>
+            <p style="font-size:14px;margin-bottom:10px;">向 <strong id="applyTargetName"></strong> 发送申请：</p>
+            <textarea id="applyReason" placeholder="请输入申请原因（选填）" style="width:100%;height:80px;padding:10px;border:1px solid #ddd;border-radius:8px;resize:vertical;"></textarea>
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:15px;">
+                <button class="action-btn" style="background:#ddd;color:#333;" onclick="document.getElementById('applyModal').classList.remove('show')">取消</button>
+                <button class="action-btn btn-primary" onclick="confirmApply()">发送</button>
+            </div>
+        </div>
     </div>
 
     <div class="match-wrapper">
@@ -425,13 +475,11 @@
     </div>
 
     <script>
-        // ========== 新增：返回"我的"界面 ==========
         function goBackToProfile() {
             localStorage.setItem('switchToProfile', 'true');
             location.href = 'index.html';
         }
 
-        // match.html 的 <script> 最前面插入
         window.onload = function () {
             const user = JSON.parse(localStorage.getItem('currentUser'));
             if (!user || !user.user_id) {
@@ -439,7 +487,7 @@
                 setTimeout(() => { location.href = 'login.html'; }, 1500);
             }
         };
-        // 独立 Toast
+
         function showToast(msg, type = 'info') {
             const toast = document.createElement('div');
             toast.className = 'toast toast-' + type;
@@ -449,6 +497,26 @@
                 toast.classList.add('toast-hidden');
                 setTimeout(() => toast.remove(), 400);
             }, 2500);
+        }
+
+        // ========== 获取当前用户的好友ID集合 ==========
+        async function fetchFriendIdSet() {
+            const friendIds = new Set();
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser) return friendIds;
+            try {
+                const res = await fetch(`http://localhost:8081/friend/list?userId=${currentUser.user_id}`);
+                const data = await res.json();
+                if (data.code === 200 && data.data && Array.isArray(data.data)) {
+                    data.data.forEach(f => {
+                        const fid = f.userId || f.user_id || f.friendId || f.friend_id || f.id;
+                        if (fid) friendIds.add(Number(fid));
+                    });
+                }
+            } catch (e) {
+                console.warn('获取好友列表失败', e);
+            }
+            return friendIds;
         }
 
         const startMatchBtn = document.getElementById('startMatchBtn');
@@ -482,12 +550,19 @@
                 const res = await fetch(`http://localhost:8081/user/matchAdvanced?${params.toString()}`);
                 const result = await res.json();
 
+                // 获取好友ID集合并过滤
+                const friendIdSet = await fetchFriendIdSet();
+                let filteredUsers = [];
+                if (result.code === 200 && result.data && result.data.length > 0) {
+                    filteredUsers = result.data.filter(u => !friendIdSet.has(Number(u.userId)));
+                }
+
                 setTimeout(() => {
                     progressModal.style.display = 'none';
-                    if (result.code === 200 && result.data && result.data.length > 0) {
-                        renderMatchResults(result.data);
+                    if (filteredUsers.length > 0) {
+                        renderMatchResults(filteredUsers);
                     } else {
-                        resultContainer.innerHTML = '<h3>✨ 匹配结果</h3><div class="empty-state">😔 没有找到合适的队友，试试调整条件吧</div>';
+                        resultContainer.innerHTML = '<h3>✨ 匹配结果</h3><div class="empty-state">😔 没有找到合适的队友（已过滤好友），试试调整条件吧</div>';
                     }
                 }, 1600);
             } catch (err) {
@@ -505,44 +580,45 @@
                 const score = u.matchScore || 75;
                 const avatar = u.avatar ? (u.avatar.startsWith('http') ? u.avatar : 'http://localhost:8081' + u.avatar) : 'https://ui-avatars.com/api/?name=User';
                 html += `
-                                <div class="match-card">
-                                    <img class="match-avatar" src="${avatar}" onerror="this.src='https://ui-avatars.com/api/?name=User'">
-                                    <div class="match-info">
-                                        <div class="nick">${u.nick || '用户'}</div>
-                                        <span class="game">${u.gameName || '未知游戏'}</span>
-                                        <span class="time-badge">${u.playtime || ''}</span>
-                                    </div>
-                                    <div class="match-score">
-                                        <div class="score-circle" style="--p:${score};">
-                                            <span class="score-value">${score}%</span>
-                                        </div>
-                                        <span style="font-size:11px;color:#888;">匹配度</span>
-                                    </div>
-                                    <button class="friend-btn" onclick="showApplyDialog(${u.userId}, '${u.nick || '用户'}')">➕ 好友申请</button>
-                                </div>`;
+                        <div class="match-card">
+                            <img class="match-avatar" src="${avatar}" onerror="this.src='https://ui-avatars.com/api/?name=User'">
+                            <div class="match-info">
+                                <div class="nick">${u.nick || '用户'}</div>
+                                <span class="game">${u.gameName || '未知游戏'}</span>
+                                <span class="time-badge">${u.playtime || ''}</span>
+                            </div>
+                            <div class="match-score">
+                                <div class="score-circle" style="--p:${score};">
+                                    <span class="score-value">${score}%</span>
+                                </div>
+                                <span style="font-size:11px;color:#888;">匹配度</span>
+                            </div>
+                            <button class="friend-btn" onclick="showApplyDialog(${u.userId}, '${u.nick || '用户'}')">➕ 好友申请</button>
+                        </div>`;
             });
             resultContainer.innerHTML = html;
         }
 
+        let pendingToUserId = null;
         function showApplyDialog(toUserId, nick) {
-            const reason = prompt(`向 ${nick} 发送好友申请，请输入申请原因：`);
-            if (reason === null) return; // 取消
-            // 调用之前的 sendFriendApply，增加 reason 参数
-            sendFriendApply(toUserId, reason);
+            pendingToUserId = toUserId;
+            document.getElementById('applyTargetName').innerText = nick || `用户 ${toUserId}`;
+            document.getElementById('applyReason').value = '';
+            document.getElementById('applyModal').classList.add('show');
         }
 
-        async function sendFriendApply(toUserId, reason) {
+        async function confirmApply() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             if (!currentUser) { showToast('请先登录', 'error'); return; }
+            const reason = document.getElementById('applyReason').value.trim();
+            document.getElementById('applyModal').classList.remove('show');
+            if (!pendingToUserId) return;
             try {
-                const res = await fetch(`http://localhost:8081/friend/apply?fromUserId=${currentUser.user_id}&toUserId=${toUserId}&reason=${encodeURIComponent(reason || '')}`, { method: 'POST' });
+                const res = await fetch(`http://localhost:8081/friend/apply?fromUserId=${currentUser.user_id}&toUserId=${pendingToUserId}&reason=${encodeURIComponent(reason)}`, { method: 'POST' });
                 const result = await res.json();
-                if (result.code === 200) {
-                    showToast('好友申请已发送', 'success');
-                } else {
-                    showToast(result.msg || '申请失败', 'error');
-                }
-            } catch (e) { showToast('请求失败', 'error'); }
+                if (result.code === 200) showToast('申请已发送', 'success');
+                else showToast(result.msg || '申请失败', 'error');
+            } catch (e) { showToast('网络错误', 'error'); }
         }
     </script>
 </body>
