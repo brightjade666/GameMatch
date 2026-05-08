@@ -34,12 +34,13 @@ public class FriendController {
     public Result apply(@RequestParam Integer fromUserId,
                         @RequestParam Integer toUserId,
                         @RequestParam(required = false) String reason) {
-        // 检查是否已是好友
-        Friend exist = friendRepo.findFriendship(fromUserId, toUserId);
+        // 修复：接收 List
+        List<Friend> existList = friendRepo.findFriendship(fromUserId, toUserId);
+        Friend exist = existList.isEmpty() ? null : existList.get(0);
+
         if (exist != null) {
             if (exist.getStatus() == 1) return Result.error("已经是好友了");
             if (exist.getStatus() == 0) return Result.error("已经发送过申请，请等待对方处理");
-            // status=2 可以重新申请
             exist.setStatus(0);
             exist.setReason(reason);
             exist.setCreateTime(LocalDateTime.now());
@@ -54,7 +55,6 @@ public class FriendController {
             friendRepo.save(apply);
         }
 
-        // 通知被申请人
         SystemNotification noti = new SystemNotification();
         noti.setUserId(toUserId);
         User from = userRepo.findById(fromUserId).orElse(null);
@@ -68,7 +68,7 @@ public class FriendController {
         return Result.success("申请已发送");
     }
 
-    // 2. 查看收到的好友申请（status=0 且 friendId=userId）
+    // 2. 查看收到的好友申请
     @GetMapping("/applies/received")
     public Result receivedApplies(@RequestParam Integer userId) {
         List<Friend> applies = friendRepo.findByFriendIdAndStatus(userId, 0);
@@ -86,7 +86,7 @@ public class FriendController {
         return Result.success(list);
     }
 
-    // 3. 处理好友申请（接受 / 拒绝）
+    // 3. 处理好友申请
     @PostMapping("/handle")
     @Transactional
     public Result handle(@RequestParam Integer applyId,
@@ -99,7 +99,6 @@ public class FriendController {
         if ("accept".equals(action)) {
             apply.setStatus(1);
             friendRepo.save(apply);
-            // 通知申请人
             SystemNotification noti = new SystemNotification();
             noti.setUserId(apply.getUserId());
             User toUser = userRepo.findById(apply.getFriendId()).orElse(null);
@@ -117,7 +116,7 @@ public class FriendController {
         return Result.error("无效操作");
     }
 
-    // 4. 获取好友列表（返回对方基础信息）
+    // 4. 获取好友列表
     @GetMapping("/list")
     public Result friendList(@RequestParam Integer userId) {
         List<Friend> list1 = friendRepo.findByUserId(userId);
@@ -153,17 +152,27 @@ public class FriendController {
         return Result.success(result);
     }
 
-    // 5. 删除好友（双向断开）
+    // 5. 删除好友（已修复）
     @DeleteMapping("/delete")
     @Transactional
     public Result deleteFriend(@RequestParam Integer userId,
                                @RequestParam Integer friendId) {
-        Friend friendship = friendRepo.findFriendship(userId, friendId);
-        if (friendship == null || friendship.getStatus() != 1) {
+
+        // 重点：接收 List
+        List<Friend> friendshipList = friendRepo.findFriendship(userId, friendId);
+
+        if (friendshipList.isEmpty()) {
             return Result.error("不是好友关系");
         }
-        friendRepo.delete(friendship);
-        // 通知对方（可选）
+
+        Friend friendship = friendshipList.get(0);
+        if (friendship.getStatus() != 1) {
+            return Result.error("不是好友关系");
+        }
+
+        // 删除双向两条数据
+        friendRepo.deleteAll(friendshipList);
+
         SystemNotification noti = new SystemNotification();
         noti.setUserId(friendId);
         User user = userRepo.findById(userId).orElse(null);
@@ -171,6 +180,7 @@ public class FriendController {
         noti.setType("friend_delete");
         noti.setCreateTime(LocalDateTime.now());
         notiRepo.save(noti);
+
         return Result.success("删除成功");
     }
 }
