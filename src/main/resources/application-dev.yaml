@@ -17,12 +17,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-  # ===== 新增：文件上传大小限制 =====
-  servlet:
-    multipart:
-      max-file-size: 10MB      # 单个文件最大 10MB
-      max-request-size: 20MB
-      # 整个请求最大 20MB
+
 logging:
   level:
     com.dong.springboot: debug

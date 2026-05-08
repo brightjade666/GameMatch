@@ -1,17 +1,33 @@
 package com.dong.springboot.vo;
 
-import lombok.Data;
-
-/**
- * 队友匹配查询参数
- */
-@Data
 public class MatchQueryDTO {
-    private Integer gameId;          // 游戏ID
+    private Integer gameId;
     private String gameName;
-    private String playtimeStart;   // 常玩开始时间
-    private String playtimeEnd;     // 常玩结束时间
-    private String matchNeed;       // 匹配需求（开黑上分/娱乐休闲等）
-    private String personality;     // 性格（稳健/活泼等）
-    private Integer excludeUserId;  // 排除当前用户ID
+    private String playtimeStart;
+    private String playtimeEnd;
+    private String matchNeed;
+    private String personality;
+    private Integer excludeUserId;
+
+    // ====== 手动 getter/setter ======
+    public Integer getGameId() { return gameId; }
+    public void setGameId(Integer gameId) { this.gameId = gameId; }
+
+    public String getGameName() { return gameName; }
+    public void setGameName(String gameName) { this.gameName = gameName; }
+
+    public String getPlaytimeStart() { return playtimeStart; }
+    public void setPlaytimeStart(String playtimeStart) { this.playtimeStart = playtimeStart; }
+
+    public String getPlaytimeEnd() { return playtimeEnd; }
+    public void setPlaytimeEnd(String playtimeEnd) { this.playtimeEnd = playtimeEnd; }
+
+    public String getMatchNeed() { return matchNeed; }
+    public void setMatchNeed(String matchNeed) { this.matchNeed = matchNeed; }
+
+    public String getPersonality() { return personality; }
+    public void setPersonality(String personality) { this.personality = personality; }
+
+    public Integer getExcludeUserId() { return excludeUserId; }
+    public void setExcludeUserId(Integer excludeUserId) { this.excludeUserId = excludeUserId; }
 }

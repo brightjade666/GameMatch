@@ -5,9 +5,9 @@ import com.dong.springboot.dao.TeamApplyRepository;
 import com.dong.springboot.dao.TeamMemberRepository;
 import com.dong.springboot.dao.TeamRecruitRepository;
 import com.dong.springboot.entity.TeamApply;
-import com.dong.springboot.entity.TeamMember;
 import com.dong.springboot.entity.TeamRecruit;
 import com.dong.springboot.service.TeamService;
+import com.dong.springboot.vo.CommentVO;
 import com.dong.springboot.vo.TeamDetailVO;
 import com.dong.springboot.vo.TeamVO;
 import org.springframework.web.bind.annotation.*;
@@ -35,26 +35,18 @@ public class TeamController {
         this.teamMemberRepository = teamMemberRepository;
     }
 
-    // 招募列表
+    // 招募列表 - 支持根据用户ID排序
     @GetMapping("/team/list")
-    public Map<String, Object> list() {
-        List<TeamDetailVO> list = teamService.getRecruitList();
-        Map<String, Object> map = new HashMap<>();
-        map.put("code", 200);
-        map.put("msg", "success");
-        map.put("data", list);
-        return map;
+    public Result list(@RequestParam(required = false) Integer userId) {
+        List<TeamDetailVO> list = teamService.getRecruitList(userId);
+        return Result.success(list);
     }
 
     // 队伍详情
     @GetMapping("/team/detail/{teamId}")
-    public Map<String, Object> detail(@PathVariable Integer teamId) {
+    public Result detail(@PathVariable Integer teamId) {
         TeamDetailVO detail = teamService.getDetail(teamId);
-        Map<String, Object> map = new HashMap<>();
-        map.put("code", 200);
-        map.put("msg", "success");
-        map.put("data", detail);
-        return map;
+        return Result.success(detail);
     }
 
     // 发布队伍
@@ -64,6 +56,18 @@ public class TeamController {
         return Result.success("发布成功");
     }
 
+    // 新增：发表评论
+    @PostMapping("/team/comment")
+    public Result addComment(@RequestParam Integer teamId,
+                             @RequestParam Integer userId,
+                             @RequestParam String content) {
+        try {
+            CommentVO vo = teamService.addComment(teamId, userId, content);
+            return Result.success(vo);
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        }
+    }
     // 申请加入（处理重复申请）
     @PostMapping("/team/apply")
     public Result apply(@RequestBody TeamApply apply) {
@@ -158,5 +162,11 @@ public class TeamController {
     public Result getCreatedTeams(@RequestParam Integer leaderId) {
         List<TeamRecruit> teams = teamService.getCreatedTeams(leaderId);
         return Result.success(teams);
+    }
+
+    @PostMapping("/team/remove")
+    public Result removeMember(@RequestParam Integer teamId, @RequestParam Integer leaderId, @RequestParam Integer userId) {
+        teamService.removeMember(teamId, leaderId, userId);
+        return Result.success("移除成功");
     }
 }

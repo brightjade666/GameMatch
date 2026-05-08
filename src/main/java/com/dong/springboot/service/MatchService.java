@@ -23,7 +23,6 @@ public class MatchService {
     @Autowired
     private GameRepository gameRepository;
 
-    // 🔥 返回 Map 列表！
     public List<Map<String, Object>> matchUsers(MatchQueryDTO dto) {
         Integer gameId = null;
 
@@ -37,13 +36,9 @@ public class MatchService {
             }
         }
 
-        // 执行查询
+        // ✅ 修改这里：只传两个参数
         List<Map<String, Object>> result = userProfileRepository.matchUsers(
                 gameId,
-                dto.getPlaytimeStart(),
-                dto.getPlaytimeEnd(),
-                dto.getMatchNeed(),
-                dto.getPersonality(),
                 dto.getExcludeUserId()
         );
 

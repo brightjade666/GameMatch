@@ -13,7 +13,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Intege
     UserProfile findByUserId(Integer userId);
     List<UserProfile> findByGameId(Integer gameId);
 
-    // 🔥 直接返回 Map！永远不会报错！
+    // ✅ 修改后：只保留 SQL 中实际用到的参数
     @Query(value = "SELECT " +
             "u.user_id AS userId, " +
             "u.username, " +
@@ -36,10 +36,6 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Intege
             nativeQuery = true)
     List<Map<String, Object>> matchUsers(
             @Param("gameId") Integer gameId,
-            @Param("playtimeStart") String playtimeStart,
-            @Param("playtimeEnd") String playtimeEnd,
-            @Param("matchNeed") String matchNeed,
-            @Param("personality") String personality,
             @Param("excludeUserId") Integer excludeUserId
     );
 }

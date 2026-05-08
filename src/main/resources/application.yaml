@@ -10,3 +10,8 @@ server:
 spring:
   profiles:
     active: dev
+  # 👇 👇 👇 只加这一段，解决文件太大报错
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB

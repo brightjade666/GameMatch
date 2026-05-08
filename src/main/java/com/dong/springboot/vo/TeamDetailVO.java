@@ -8,9 +8,12 @@ public class TeamDetailVO {
     private String avatar;
     private String leader;
     private String need;
+    private Integer leaderId;
     private String desc;
     private List<CommentVO> comments;
 
+    public Integer getLeaderId() { return leaderId; }
+    public void setLeaderId(Integer leaderId) { this.leaderId = leaderId; }
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
     public String getTitle() { return title; }
