@@ -688,7 +688,7 @@
             if (!pendingToUserId) return;
             try {
                 const res = await fetch(
-                    `http://localhost:8081/friend/apply?fromUserId=${currentUser.user_id}&toUserId=${pendingToUserId}&reason=${encodeURIComponent(reason)}`, { method: 'POST' });
+                    `http://172.27.242.62:8081/friend/apply?fromUserId=${currentUser.user_id}&toUserId=${pendingToUserId}&reason=${encodeURIComponent(reason)}`, { method: 'POST' });
                 const data = await res.json();
                 showToast(data.code === 200 ? '申请已发送' : (data.msg || '失败'), data.code === 200 ? 'success' : 'error');
             } catch (e) { showToast('网络错误', 'error'); }
@@ -697,12 +697,12 @@
         // 详细资料
         async function viewProfile(userId) {
             try {
-                const infoRes = await fetch(`http://localhost:8081/user/info?userId=${userId}`);
+                const infoRes = await fetch(`http://172.27.242.62:8081/user/info?userId=${userId}`);
                 const infoData = await infoRes.json();
                 if (!infoData.data) return showToast('获取失败', 'error');
                 const u = infoData.data;
                 document.getElementById('profileAvatar').src = u.avatar ? (u.avatar.startsWith('http') ? u.avatar :
-                    'http://localhost:8081' + u.avatar) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u
+                    'http://172.27.242.62:8081' + u.avatar) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u
                         .nick || u.username || '用户');
                 document.getElementById('profileName').innerText = u.nick || u.username;
                 document.getElementById('profileIntro').innerText = u.introduction || '无简介';
@@ -721,11 +721,11 @@
 
         async function viewBriefProfile(userId) {
             try {
-                const res = await fetch(`http://localhost:8081/user/publicInfo?userId=${userId}`);
+                const res = await fetch(`http://172.27.242.62:8081/user/publicInfo?userId=${userId}`);
                 const data = await res.json();
                 if (data.code === 200) {
                     document.getElementById('briefAvatar').src = data.avatar ? (data.avatar.startsWith('http') ? data
-                        .avatar : 'http://localhost:8081' + data.avatar) :
+                        .avatar : 'http://172.27.242.62:8081' + data.avatar) :
                         'https://ui-avatars.com/api/?name=' + encodeURIComponent(data.nick || '用户');
                     document.getElementById('briefName').innerText = data.nick || '用户';
                     document.getElementById('briefGame').innerText = data.gameName || '未设定';
@@ -739,7 +739,7 @@
         async function deleteFriend(friendId) {
             showConfirm('确定删除该好友吗？', async () => {
                 const res = await fetch(
-                    `http://localhost:8081/friend/delete?userId=${currentUser.user_id}&friendId=${friendId}`, { method: 'DELETE' });
+                    `http://172.27.242.62:8081/friend/delete?userId=${currentUser.user_id}&friendId=${friendId}`, { method: 'DELETE' });
                 const r = await res.json();
                 showToast(r.msg, r.code === 200 ? 'success' : 'error');
                 if (r.code === 200 && currentSessionId) {
@@ -756,7 +756,7 @@
         async function fetchFriendIdSet() {
             const friendIds = new Set();
             try {
-                const res = await fetch(`http://localhost:8081/friend/list?userId=${currentUser.user_id}`);
+                const res = await fetch(`http://172.27.242.62:8081/friend/list?userId=${currentUser.user_id}`);
                 const data = await res.json();
                 if (data.code === 200 && data.data && Array.isArray(data.data)) {
                     data.data.forEach(f => {
@@ -774,10 +774,10 @@
         async function loadAllSessions() {
             let list = [];
             try {
-                const teamRes = await fetch(`http://localhost:8081/chat/team/list?userId=${currentUser.user_id}`);
+                const teamRes = await fetch(`http://172.27.242.62:8081/chat/team/list?userId=${currentUser.user_id}`);
                 const teamData = await teamRes.json();
                 if (teamData.code === 200) list = list.concat(teamData.data);
-                const privateRes = await fetch(`http://localhost:8081/chat/private/my?userId=${currentUser.user_id}`);
+                const privateRes = await fetch(`http://172.27.242.62:8081/chat/private/my?userId=${currentUser.user_id}`);
                 const privateData = await privateRes.json();
                 if (privateData.code === 200) list = list.concat(privateData.data);
             } catch (e) { }
@@ -793,7 +793,7 @@
                 item.className = 'session-item';
                 item.onclick = () => selectSession(s);
                 item.innerHTML = `
-                                    <div class="session-avatar" style="background-image:url(http://localhost:8081${s.avatar});background-size:cover;"></div>
+                                    <div class="session-avatar" style="background-image:url(http://172.27.242.62:8081${s.avatar});background-size:cover;"></div>
                                     <div class="session-info">
                                         <div class="session-nickname">${s.name}</div>
                                         <div class="session-last-msg">${s.lastMsg || '暂无消息'}</div>
@@ -832,7 +832,7 @@
                 const isCurrentUserLeader = (currentUser.user_id == leaderId);
 
                 const [memberRes, friendIdSet] = await Promise.all([
-                    fetch(`http://localhost:8081/chat/team/members?teamId=${teamId}`),
+                    fetch(`http://172.27.242.62:8081/chat/team/members?teamId=${teamId}`),
                     fetchFriendIdSet()
                 ]);
 
@@ -875,7 +875,7 @@
 
                     div.innerHTML = `
                             <div class="member-top">
-                                <div class="member-avatar" style="background-image:url(${u.avatar ? 'http://localhost:8081' + u.avatar : ''}); background-size:cover;"></div>
+                                <div class="member-avatar" style="background-image:url(${u.avatar ? 'http://172.27.242.62:8081' + u.avatar : ''}); background-size:cover;"></div>
                                 <div class="member-name-wrap">
                                     ${isLeader ? '<span class="leader-tag">队长</span>' : ''}
                                     <span class="member-name">${nameHtml}</span>
@@ -895,7 +895,7 @@
         async function removeMember(teamId, userId) {
             showConfirm('确定将该成员移出队伍吗？', async () => {
                 const res = await fetch(
-                    `http://localhost:8081/team/remove?teamId=${teamId}&leaderId=${currentUser.user_id}&userId=${userId}`, { method: 'POST' });
+                    `http://172.27.242.62:8081/team/remove?teamId=${teamId}&leaderId=${currentUser.user_id}&userId=${userId}`, { method: 'POST' });
                 const r = await res.json();
                 showToast(r.msg, r.code === 200 ? 'success' : 'error');
                 if (r.code === 200) loadTeamMembers(teamId);
@@ -906,12 +906,12 @@
             const container = document.getElementById('member-list-container');
             document.getElementById('member-list-title').innerText = '好友信息';
             try {
-                const res = await fetch(`http://localhost:8081/user/publicInfo?userId=${userId}`);
+                const res = await fetch(`http://172.27.242.62:8081/user/publicInfo?userId=${userId}`);
                 const data = await res.json();
                 if (data.code === 200) {
                     container.innerHTML = `
                                         <div style="text-align:center;padding:15px;">
-                                            <img src="${data.avatar ? (data.avatar.startsWith('http') ? data.avatar : 'http://localhost:8081' + data.avatar) : 'https://ui-avatars.com/api/?name=User'}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">
+                                            <img src="${data.avatar ? (data.avatar.startsWith('http') ? data.avatar : 'http://172.27.242.62:8081' + data.avatar) : 'https://ui-avatars.com/api/?name=User'}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">
                                             <h4 style="margin:10px 0;">${data.nick}</h4>
                                             <p style="font-size:13px;color:#666;">${data.introduction || '无简介'}</p>
                                             <div style="margin-top:15px;display:flex;gap:8px;justify-content:center;">
@@ -926,7 +926,7 @@
         async function loadTeamMessage(teamId) {
             const chat = document.getElementById('chat-container');
             chat.innerHTML = '';
-            const res = await fetch(`http://localhost:8081/chat/team/history?teamId=${teamId}`);
+            const res = await fetch(`http://172.27.242.62:8081/chat/team/history?teamId=${teamId}`);
             const data = await res.json();
             if (data.code === 200 && data.data) {
                 data.data.forEach(msg => chat.insertAdjacentHTML('beforeend', getMsgHtml(msg, msg.fromId == currentUser
@@ -937,7 +937,7 @@
         async function loadPrivateMessage(uid1, uid2) {
             const chat = document.getElementById('chat-container');
             chat.innerHTML = '';
-            const res = await fetch(`http://localhost:8081/chat/private/history?userId1=${uid1}&userId2=${uid2}`);
+            const res = await fetch(`http://172.27.242.62:8081/chat/private/history?userId1=${uid1}&userId2=${uid2}`);
             const data = await res.json();
             if (data.code === 200 && data.data) {
                 data.data.forEach(msg => chat.insertAdjacentHTML('beforeend', getMsgHtml(msg, msg.fromId == currentUser
@@ -948,12 +948,12 @@
 
         function getMsgHtml(msg, isSelf) {
             let media = '';
-            if (msg.msgType === 'image') media = `<img src="http://localhost:8081${msg.fileUrl}">`;
+            if (msg.msgType === 'image') media = `<img src="http://172.27.242.62:8081${msg.fileUrl}">`;
             else if (msg.msgType === 'video') media =
-                `<video src="http://localhost:8081${msg.fileUrl}" controls></video>`;
+                `<video src="http://172.27.242.62:8081${msg.fileUrl}" controls></video>`;
             return `
                             <div class="message ${isSelf ? 'self' : 'other'}">
-                                <div class="message-avatar" style="background-image:url(http://localhost:8081${msg.avatar})"></div>
+                                <div class="message-avatar" style="background-image:url(http://172.27.242.62:8081${msg.avatar})"></div>
                                 <div class="message-content-wrap">
                                     <div class="message-sender">${isSelf ? '我' : msg.username}</div>
                                     <div class="message-bubble">${msg.content || ''}${media}</div>
@@ -964,8 +964,8 @@
             const input = document.getElementById('message-input');
             const content = input.value.trim();
             if (!content || !currentSessionId) return;
-            const url = currentSessionType === 'team' ? 'http://localhost:8081/chat/team/send' :
-                'http://localhost:8081/chat/private/send';
+            const url = currentSessionType === 'team' ? 'http://172.27.242.62:8081/chat/team/send' :
+                'http://172.27.242.62:8081/chat/private/send';
             const params = new URLSearchParams();
             params.append('fromId', currentUser.user_id);
             params.append('content', content);
@@ -982,11 +982,11 @@
             if (!file || !currentSessionId) return;
             let fd = new FormData();
             fd.append('file', file);
-            let upRes = await fetch('http://localhost:8081/file/upload', { method: 'POST', body: fd });
+            let upRes = await fetch('http://172.27.242.62:8081/file/upload', { method: 'POST', body: fd });
             let fileUrl = await upRes.text();
             if (!fileUrl.startsWith('/upload')) return showToast('上传失败', 'error');
-            const url = currentSessionType === 'team' ? 'http://localhost:8081/chat/team/send' :
-                'http://localhost:8081/chat/private/send';
+            const url = currentSessionType === 'team' ? 'http://172.27.242.62:8081/chat/team/send' :
+                'http://172.27.242.62:8081/chat/private/send';
             const params = new URLSearchParams();
             params.append('fromId', currentUser.user_id);
             params.append('content', '');

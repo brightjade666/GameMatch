@@ -411,9 +411,10 @@
     <div class="match-wrapper">
         <div class="filter-panel">
             <h3>🎯 匹配筛选</h3>
+            <!-- 替换原有的游戏筛选部分 -->
             <div class="filter-group">
                 <label>常玩游戏</label>
-                <select id="matchGame">
+                <select id="matchGame" class="form-control" onchange="handleMatchOtherGame(this.value)">
                     <option value="">不限</option>
                     <option value="王者荣耀">王者荣耀</option>
                     <option value="英雄联盟">英雄联盟</option>
@@ -425,7 +426,9 @@
                     <option value="守望先锋">守望先锋</option>
                     <option value="我的世界">我的世界</option>
                     <option value="光遇">光遇</option>
+                    <option value="其他">其他...</option>
                 </select>
+                <input type="text" id="matchGameOther" class="form-control" style="display:none; margin-top:10px;" placeholder="请输入游戏名称">
             </div>
             <div class="filter-group">
                 <label>游玩时段</label>
@@ -505,7 +508,7 @@
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             if (!currentUser) return friendIds;
             try {
-                const res = await fetch(`http://localhost:8081/friend/list?userId=${currentUser.user_id}`);
+                const res = await fetch(`http://172.27.242.62:8081/friend/list?userId=${currentUser.user_id}`);
                 const data = await res.json();
                 if (data.code === 200 && data.data && Array.isArray(data.data)) {
                     data.data.forEach(f => {
@@ -529,7 +532,7 @@
                 showToast('请先登录', 'error');
                 return;
             }
-            const game = document.getElementById('matchGame').value;
+            const game = getMatchGameName();
             const timeStart = document.getElementById('timeStart').value;
             const timeEnd = document.getElementById('timeEnd').value;
             const need = document.getElementById('matchNeed').value;
@@ -547,7 +550,7 @@
                 if (personality) params.append('personality', personality);
                 params.append('excludeUserId', currentUser.user_id);
 
-                const res = await fetch(`http://localhost:8081/user/matchAdvanced?${params.toString()}`);
+                const res = await fetch(`http://172.27.242.62:8081/user/matchAdvanced?${params.toString()}`);
                 const result = await res.json();
 
                 // 获取好友ID集合并过滤
@@ -578,7 +581,7 @@
             let html = '<h3>✨ 匹配结果</h3>';
             users.forEach(u => {
                 const score = u.matchScore || 75;
-                const avatar = u.avatar ? (u.avatar.startsWith('http') ? u.avatar : 'http://localhost:8081' + u.avatar) : 'https://ui-avatars.com/api/?name=User';
+                const avatar = u.avatar ? (u.avatar.startsWith('http') ? u.avatar : 'http://172.27.242.62:8081' + u.avatar) : 'https://ui-avatars.com/api/?name=User';
                 html += `
                         <div class="match-card">
                             <img class="match-avatar" src="${avatar}" onerror="this.src='https://ui-avatars.com/api/?name=User'">
@@ -607,6 +610,26 @@
             document.getElementById('applyModal').classList.add('show');
         }
 
+        // 处理匹配页“其他”游戏选项
+        function handleMatchOtherGame(val) {
+            const otherInput = document.getElementById('matchGameOther');
+            if (val === '其他') {
+                otherInput.style.display = 'block';
+            } else {
+                otherInput.style.display = 'none';
+                otherInput.value = '';
+            }
+        }
+
+        // 获取最终游戏名称（下拉选“其他”时取自定义输入，否则取下拉值）
+        function getMatchGameName() {
+            const select = document.getElementById('matchGame');
+            if (select.value === '其他') {
+                return document.getElementById('matchGameOther').value.trim();
+            }
+            return select.value;
+        }
+
         async function confirmApply() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             if (!currentUser) { showToast('请先登录', 'error'); return; }
@@ -614,7 +637,7 @@
             document.getElementById('applyModal').classList.remove('show');
             if (!pendingToUserId) return;
             try {
-                const res = await fetch(`http://localhost:8081/friend/apply?fromUserId=${currentUser.user_id}&toUserId=${pendingToUserId}&reason=${encodeURIComponent(reason)}`, { method: 'POST' });
+                const res = await fetch(`http://172.27.242.62:8081/friend/apply?fromUserId=${currentUser.user_id}&toUserId=${pendingToUserId}&reason=${encodeURIComponent(reason)}`, { method: 'POST' });
                 const result = await res.json();
                 if (result.code === 200) showToast('申请已发送', 'success');
                 else showToast(result.msg || '申请失败', 'error');
