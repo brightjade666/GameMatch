@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface PrivateMessageRepository extends JpaRepository<PrivateMessage, Long> {
     List<PrivateMessage> findByFromIdAndToIdOrderBySendTimeAsc(Integer fromId, Integer toId);
+    void deleteByFromId(Integer fromId);
+    void deleteByToId(Integer toId);
 }

@@ -6,6 +6,8 @@ import java.util.List;
 
 public interface TeamApplyRepository extends JpaRepository<TeamApply, Integer> {
     List<TeamApply> findByTeamId(Integer teamId);
-    // 在 TeamApplyRepository.java 中添加
     List<TeamApply> findByTeamIdAndUserId(Integer teamId, Integer userId);
+
+    void deleteByUserId(Integer userId);
+    void deleteByTeamId(Integer teamId);   // ✅ 新增
 }

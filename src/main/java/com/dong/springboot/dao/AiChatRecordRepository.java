@@ -6,4 +6,7 @@ import java.util.List;
 
 public interface AiChatRecordRepository extends JpaRepository<AiChatRecord, Long> {
     List<AiChatRecord> findByUserIdOrderByCreateTimeAsc(Integer userId);
+
+    // ✅ 新增：按 userId 删除所有 AI 聊天记录
+    void deleteByUserId(Integer userId);
 }

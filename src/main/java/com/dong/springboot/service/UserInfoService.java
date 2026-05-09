@@ -1,5 +1,10 @@
 package com.dong.springboot.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.dong.springboot.dao.GameRepository;
 import com.dong.springboot.dao.UserProfileRepository;
 import com.dong.springboot.dao.UserRepository;
@@ -7,8 +12,6 @@ import com.dong.springboot.entity.Game;
 import com.dong.springboot.entity.User;
 import com.dong.springboot.entity.UserProfile;
 import com.dong.springboot.vo.UserInfoVO;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserInfoService {
@@ -120,5 +123,43 @@ public class UserInfoService {
         profile.setTeamRequirement(vo.getMatchneed());
 
         userProfileRepository.save(profile);
+    }
+
+    // ===================== 新增方法 =====================
+    // 这些方法供 AdminController 使用
+
+    public User findById(Integer userId) {
+        return userRepository.findById(userId).orElse(null);
+    }
+
+    public List<User> findAll() {
+        return userRepository.findAllByOrderByCreateTimeDesc();
+    }
+
+    public List<User> searchByUsername(String keyword) {
+        return userRepository.findByUsernameContaining(keyword);
+    }
+
+    public void delete(Integer userId) {
+        userRepository.deleteById(userId);
+    }
+
+    public void update(User user) {
+        // 保持创建时间不变，只更新修改时间
+        user.setUpdateTime(LocalDateTime.now());
+        userRepository.save(user);
+    }
+
+    public long count() {
+        return userRepository.count();
+    }
+
+    public long countByStatus(Integer status) {
+        return userRepository.countByStatus(status);
+    }
+
+    //获取用户的游戏档案
+    public UserProfile getUserProfile(Integer userId) {
+        return userProfileRepository.findByUserId(userId);
     }
 }

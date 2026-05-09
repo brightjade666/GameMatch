@@ -22,4 +22,12 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
     default Friend findById(Integer id) {
         return findById(Long.valueOf(id)).orElse(null);
     }
+
+    // ===================== 新增方法：级联删除时使用 =====================
+
+    // 删除某个用户作为 user_id 的所有好友记录
+    void deleteByUserId(Integer userId);
+
+    // 删除某个用户作为 friend_id 的所有好友记录
+    void deleteByFriendId(Integer friendId);
 }

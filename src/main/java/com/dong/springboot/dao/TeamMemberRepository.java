@@ -1,15 +1,15 @@
 package com.dong.springboot.dao;
 
 import com.dong.springboot.entity.TeamMember;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
-public interface TeamMemberRepository extends CrudRepository<TeamMember, Integer> {
+public interface TeamMemberRepository extends JpaRepository<TeamMember, Integer> {
 
-    // 根据用户ID → 查询他加入了哪些队伍
     List<TeamMember> findByUserId(Integer userId);
-
-    // 根据队伍ID → 查询这个队伍有哪些成员
     List<TeamMember> findByTeamId(Integer teamId);
     void deleteByTeamIdAndUserId(Integer teamId, Integer userId);
+
+    // 新增：删除某个用户的所有成员记录（管理员级联删除用）
+    void deleteByUserId(Integer userId);
 }

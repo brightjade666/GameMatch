@@ -12,7 +12,8 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Intege
 
     UserProfile findByUserId(Integer userId);
     List<UserProfile> findByGameId(Integer gameId);
-
+    // UserProfileRepository.java
+    void deleteByUserId(Integer userId);
     // ✅ 修改后：只保留 SQL 中实际用到的参数
     @Query(value = "SELECT " +
             "u.user_id AS userId, " +

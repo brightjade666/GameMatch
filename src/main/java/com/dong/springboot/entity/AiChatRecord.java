@@ -1,10 +1,9 @@
 package com.dong.springboot.entity;
 
-import lombok.Data;
+
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Data
 @Entity
 @Table(name = "ai_chat_record")
 public class AiChatRecord {
@@ -26,4 +25,22 @@ public class AiChatRecord {
 
     @Column(name = "create_time")
     private LocalDateTime createTime;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Integer getUserId() { return userId; }
+    public void setUserId(Integer userId) { this.userId = userId; }
+
+    public String getUserMsg() { return userMsg; }
+    public void setUserMsg(String userMsg) { this.userMsg = userMsg; }
+
+    public String getAiReply() { return aiReply; }
+    public void setAiReply(String aiReply) { this.aiReply = aiReply; }
+
+    public String getChatType() { return chatType; }
+    public void setChatType(String chatType) { this.chatType = chatType; }
+
+    public LocalDateTime getCreateTime() { return createTime; }
+    public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
 }

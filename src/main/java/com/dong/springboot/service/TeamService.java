@@ -328,4 +328,67 @@ public class TeamService {
         noti.setCreateTime(LocalDateTime.now());
         notiRepo.save(noti);
     }
+
+
+    // ===================== 新增方法 =====================
+
+    // 获取所有队伍
+    public List<TeamRecruit> getAllTeams() {
+        return teamRecruitRepo.findAll();
+    }
+
+    // 统计队伍数量
+    public long countTeams() {
+        return teamRecruitRepo.count();
+    }
+
+    // 按队伍名模糊搜索
+    public List<TeamRecruit> searchByTeamName(String keyword) {
+        return teamRecruitRepo.findByTeamNameContaining(keyword);
+    }
+
+    // 获取用户加入的队伍（通过 team_member 表查找）
+    public List<TeamRecruit> getJoinedTeams(Integer userId) {
+        List<TeamMember> members = teamMemberRepo.findByUserId(userId);
+        List<TeamRecruit> result = new ArrayList<>();
+        for (TeamMember m : members) {
+            TeamRecruit team = teamRecruitRepo.findById(m.getTeamId()).orElse(null);
+            if (team != null) {
+                result.add(team);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 管理员强制解散队伍（不校验队长身份）
+     * 通知所有队员，并清除成员记录
+     */
+    @Transactional
+    public void adminDissolveTeam(Integer teamId, Integer adminId) {
+        TeamRecruit team = teamRecruitRepo.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("队伍不存在"));
+        if (team.getStatus() == 0) {
+            return; // 已解散，无需操作
+        }
+
+        // 1. 设置队伍状态为已解散
+        team.setStatus(0);
+        teamRecruitRepo.save(team);
+
+        // 2. 通知所有队员
+        List<TeamMember> members = teamMemberRepo.findByTeamId(teamId);
+        for (TeamMember m : members) {
+            SystemNotification noti = new SystemNotification();
+            noti.setUserId(m.getUserId());
+            noti.setContent("队伍「" + team.getTeamName() + "」已被管理员强制解散");
+            noti.setType("admin_dissolve");
+            noti.setRelatedId(teamId);
+            noti.setCreateTime(LocalDateTime.now());
+            notiRepo.save(noti);
+        }
+
+        // 3. 删除所有成员记录
+        teamMemberRepo.deleteAll(members);
+    }
 }
