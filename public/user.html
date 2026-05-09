@@ -327,11 +327,11 @@
             const local = JSON.parse(localStorage.getItem('currentUser')) || {};
             const userId = local.user_id;
             try {
-                const res = await fetch("http://172.27.242.62:8081/user/info?userId=" + userId);
+                const res = await fetch("http://localhost:8081/user/info?userId=" + userId);
                 const result = await res.json();
                 userData = result.data || {};
                 currentAvatar = userData.avatar || "";
-                document.getElementById('ipt-avatar-pre').src = currentAvatar ? "http://172.27.242.62:8081" + currentAvatar : 'https://via.placeholder.com/150';
+                document.getElementById('ipt-avatar-pre').src = currentAvatar ? "http://localhost:8081" + currentAvatar : 'https://via.placeholder.com/150';
                 document.getElementById('ipt-nick').value = userData.nick || '';
                 document.getElementById('ipt-intro').value = userData.introduction || '';
                 document.getElementById('ipt-gender').value = userData.gender == 1 ? "男" : "女";
@@ -422,9 +422,9 @@
             if (!file) return;
             let fd = new FormData();
             fd.append("file", file);
-            let res = await fetch("http://172.27.242.62:8081/file/upload", { method: "POST", body: fd });
+            let res = await fetch("http://localhost:8081/file/upload", { method: "POST", body: fd });
             currentAvatar = await res.text();
-            document.getElementById('ipt-avatar-pre').src = "http://172.27.242.62:8081" + currentAvatar;
+            document.getElementById('ipt-avatar-pre').src = "http://localhost:8081" + currentAvatar;
         }
         async function doSave(fromCancel = false) {
             if (!requireLogin()) return;
@@ -466,7 +466,7 @@
                 return;
             }
             try {
-                const res = await fetch("http://172.27.242.62:8081/user/update", {
+                const res = await fetch("http://localhost:8081/user/update", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(updated)

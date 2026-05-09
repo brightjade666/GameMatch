@@ -186,7 +186,7 @@
 </head>
 <body>
     <div class="create-container">
-        <h2 class="page-title">🚀 发起新队伍</h2>
+        <h2 class="page-title"> 发起新队伍</h2>
 
         <div class="upload-box" onclick="document.getElementById('team-cover-input').click()">
             <img id="team-cover-pre" src="">
@@ -263,11 +263,11 @@
             let formData = new FormData();
             formData.append("file", file);
             try {
-                let res = await fetch("http://172.27.242.62:8081/file/upload", { method: "POST", body: formData });
+                let res = await fetch("http://localhost:8081/file/upload", { method: "POST", body: formData });
                 let path = await res.text();
                 coverPath = path;
                 let img = document.getElementById("team-cover-pre");
-                img.src = "http://172.27.242.62:8081" + coverPath;
+                img.src = "http://localhost:8081" + coverPath;
                 img.style.display = "block";
                 document.getElementById("cover-plus-icon").style.display = "none";
                 document.getElementById("cover-text").style.display = "none";
@@ -324,7 +324,7 @@
             };
 
             try {
-                let res = await fetch("http://172.27.242.62:8081/team/publish", {
+                let res = await fetch("http://localhost:8081/team/publish", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(postData)

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Microsoft YaHei', sans-serif; }
+        body { display: flex; min-height: 100vh; background: #f4f6f9; }
+        .sidebar {
+            width: 240px; background: #1e293b; color: #cbd5e1; padding: 20px 0;
+            display: flex; flex-direction: column;
+        }
+        .sidebar h2 { color: white; text-align: center; margin-bottom: 30px; font-size: 22px; }
+        .sidebar a {
+            color: #cbd5e1; text-decoration: none; padding: 14px 25px; display: block;
+            transition: 0.3s; border-left: 3px solid transparent; cursor: pointer;
+        }
+        .sidebar a:hover, .sidebar a.active { background: #334155; color: white; border-left-color: #0078d4; }
+        .sidebar .logout-btn { margin-top: auto; background: #dc3545; color: white; text-align: center;
+            padding: 12px; cursor: pointer; transition: 0.3s; }
+        .sidebar .logout-btn:hover { background: #bb2d3b; }
+        .main { flex: 1; padding: 30px; overflow-y: auto; }
+        .card { background: white; border-radius: 10px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .card h3 { margin-bottom: 15px; color: #1e293b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+        th { background: #f8fafc; color: #475569; }
+        tr:hover { background: #f1f5f9; }
+        button {
+            padding: 6px 14px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px;
+            margin-right: 5px; transition: 0.2s;
+        }
+        .btn-primary { background: #0078d4; color: white; }
+        .btn-primary:hover { background: #005a9e; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #bb2d3b; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-info { background: #6c757d; color: white; }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-bar input { flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 5px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .stat-card { background: white; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .stat-card h4 { font-size: 28px; margin: 10px 0; }
+        .badge { padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+        .badge-normal { background: #d1fae5; color: #065f46; }
+        .badge-disabled { background: #fee2e2; color: #991b1b; }
+        .badge-admin { background: #dbeafe; color: #1e40af; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 12px; padding: 30px; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; }
+        .modal-close { float: right; font-size: 24px; cursor: pointer; color: #999; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .detail-item { margin-bottom: 10px; }
+        .detail-item label { font-size: 13px; color: #666; display: block; }
+        .detail-item span { font-size: 15px; color: #333; }
+        .pagination { margin-top: 15px; display: flex; gap: 5px; justify-content: center; }
+        .pagination button { padding: 5px 10px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>⚙️ 管理面板</h2>
+        <a onclick="switchAdminTab('dashboard')" id="link-dashboard" class="active">📊 仪表盘</a>
+        <a onclick="switchAdminTab('users')" id="link-users">👥 用户管理</a>
+        <a onclick="switchAdminTab('teams')" id="link-teams">🏆 队伍管理</a>
+        <!-- 操作日志暂时隐藏，后端未实现 -->
+        <!-- <a onclick="switchAdminTab('logs')" id="link-logs">📋 操作日志</a> -->
+        <div class="logout-btn" onclick="adminLogout()">退出后台</div>
+    </div>
+
+    <div class="main" id="main-content"></div>
+
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div id="detail-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== Mock 开关（后端未就绪时改为 true）====================
+        const MOCK = false;   // false = 真实后端, true = 假数据测试
+
+        // ==================== 权限校验 ====================
+        const adminUser = JSON.parse(localStorage.getItem('currentUser')) || {};
+        if (!adminUser.user_id || adminUser.role !== 9) {
+            alert('请使用管理员账号登录');
+            location.href = 'login.html';
+        }
+        const ADMIN_ID = adminUser.user_id;
+        const API_BASE = 'http://localhost:8081';
+
+        // ==================== 工具函数 ====================
+        function showToast(msg, type = 'info') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:6px;color:white;z-index:9999;background:${type==='success'?'#28a745':type==='error'?'#dc3545':'#0078d4'}`;
+            toast.innerText = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3000);
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        // 通用请求方法
+        async function apiCall(path, method = 'GET', extraParams = {}) {
+            if (MOCK) {
+                return mockFetch(path, method, extraParams);
+            }
+            const url = new URL(API_BASE + path);
+            url.searchParams.append('adminId', ADMIN_ID);
+            Object.entries(extraParams).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== '') {
+                    url.searchParams.append(key, value);
+                }
+            });
+            const options = { method };
+            try {
+                const res = await fetch(url.toString(), options);
+                const data = await res.json();
+                if (data.code === 403) {
+                    alert('管理员权限失效，请重新登录');
+                    localStorage.removeItem('currentUser');
+                    location.href = 'login.html';
+                }
+                return data;
+            } catch (e) {
+                console.error(e);
+                showToast('网络错误', 'error');
+                return { code: 500, msg: '网络错误', data: [] };
+            }
+        }
+
+        // ==================== Mock 数据（仅当 MOCK=true 时使用）====================
+        function mockFetch(path, method, extraParams) {
+            const dataMap = {
+                '/admin/statistics': { code:200, msg:'ok', data: { totalUsers:1520, activeUsers:1280, disabledUsers:240, totalTeams:356, activeTeams:290, todayNewUsers:35 }},
+                '/admin/users': { code:200, msg:'ok', data: { list: Array.from({length:10}, (_,i)=>({userId:i+1,username:`用户${i+1}`,role:i===0?9:0,status:1,createTime:'2026-05-01'})), total:10 }},
+                '/admin/user/': { code:200, msg:'ok', data: { user:{userId:1,username:'测试用户',gender:1,age:20,contact:'13800',role:0,status:1,createTime:'2026-05-01'}, profile:{gameName:'王者荣耀',gameRank:'钻石',winRate:60,totalMatches:100} }},
+                '/admin/teams': { code:200, msg:'ok', data: { list: Array.from({length:5}, (_,i)=>({teamId:i+1,teamName:`车队${i+1}`,leaderName:'队长',leaderId:1,currentCount:2,needCount:3,status:1,createTime:'2026-05-01'})), total:5 }},
+                '/admin/team/': { code:200, msg:'ok', data: { id:1, title:'测试车队', avatar:'', need:'王者荣耀', desc:'测试描述', leader:'队长甲', members:[] }}
+            };
+            return Promise.resolve(dataMap[path] || {code:500,msg:'Mock未实现'});
+        }
+
+        // ==================== 页面导航 ====================
+        function switchAdminTab(tab) {
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            document.getElementById('link-' + tab).classList.add('active');
+            switch(tab) {
+                case 'dashboard': loadDashboard(); break;
+                case 'users': loadUsers(); break;
+                case 'teams': loadTeams(); break;
+                // case 'logs': loadLogs(); break;
+            }
+        }
+
+        // ==================== 仪表盘 ====================
+        async function loadDashboard() {
+            const data = await apiCall('/admin/statistics');
+            if (data.code !== 200) { showToast('加载失败', 'error'); return; }
+            const s = data.data;
+            // 后端返回字段：userCount, teamCount, activeUserCount, disabledUserCount
+            document.getElementById('main-content').innerHTML = `
+                <h2>仪表盘</h2>
+                <div class="stats-grid">
+                    <div class="stat-card"><h4>${s.totalUsers ?? s.userCount ?? 0}</h4><p>总用户</p></div>
+                    <div class="stat-card"><h4>${s.disabledUsers ?? s.disabledUserCount ?? 0}</h4><p>禁用用户</p></div>
+                    <div class="stat-card"><h4>${s.totalTeams ?? s.teamCount ?? 0}</h4><p>总队伍</p></div>
+                </div>
+            `;
+        }
+
+        // ==================== 用户管理（前端分页，因为后端暂不支持分页参数）====================
+        let userList = []; // 缓存所有用户
+        let userPage = 1;
+        const PAGE_SIZE = 10;
+
+        async function loadUsers(page = 1, keyword = '', status = '') {
+            userPage = page;
+            const main = document.getElementById('main-content');
+            main.innerHTML = '<h2>用户管理</h2><div class="search-bar"><input id="userSearch" placeholder="搜索用户名" value="'+keyword+'"><select id="userStatus"><option value="">全部状态</option><option value="1">正常</option><option value="0">禁用</option></select><button class="btn-primary" onclick="loadUsers(1, document.getElementById(\'userSearch\').value, document.getElementById(\'userStatus\').value)">搜索</button></div><div id="userTable"></div><div id="userPagination" class="pagination"></div>';
+            
+            const data = await apiCall('/admin/users');
+            if (data.code !== 200) { showToast('加载失败', 'error'); return; }
+            // 后端返回 { data: { list: [...] } } 或直接数组
+            let allUsers = data.data && data.data.list ? data.data.list : (Array.isArray(data.data) ? data.data : []);
+            // 前端过滤
+            let filtered = allUsers;
+            if (keyword) {
+                filtered = filtered.filter(u => u.username.includes(keyword));
+            }
+            if (status) {
+                filtered = filtered.filter(u => u.status == status);
+            }
+            userList = filtered;
+            renderUserPage(page);
+        }
+
+        function renderUserPage(page) {
+            const start = (page - 1) * PAGE_SIZE;
+            const pageUsers = userList.slice(start, start + PAGE_SIZE);
+            let html = '<table><tr><th>ID</th><th>用户名</th><th>角色</th><th>状态</th><th>注册时间</th><th>操作</th></tr>';
+            pageUsers.forEach(u => {
+                html += `<tr>
+                    <td>${u.userId}</td><td>${u.username}</td>
+                    <td>${u.role === 9 ? '<span class="badge badge-admin">管理员</span>' : u.role === 1 ? '队长' : '用户'}</td>
+                    <td>${u.status == 1 ? '<span class="badge badge-normal">正常</span>' : '<span class="badge badge-disabled">禁用</span>'}</td>
+                    <td>${u.createTime || ''}</td>
+                    <td>
+                        <button class="btn-info" onclick="viewUserDetail(${u.userId})">详情</button>
+                        ${u.role !== 9 ? (
+                            u.status == 1 ? 
+                                `<button class="btn-warning" onclick="toggleUserStatus(${u.userId}, 0)">禁用</button>` : 
+                                `<button class="btn-success" onclick="toggleUserStatus(${u.userId}, 1)">启用</button>`
+                        ) : ''}
+                        ${u.role !== 9 ? `<button class="btn-danger" onclick="deleteUser(${u.userId})">删除</button>` : ''}
+                    </td>
+                </tr>`;
+            });
+            html += '</table>';
+            document.getElementById('userTable').innerHTML = html;
+            // 分页按钮
+            const totalPages = Math.ceil(userList.length / PAGE_SIZE);
+            let pagHtml = '';
+            for (let i = 1; i <= totalPages; i++) {
+                pagHtml += `<button onclick="renderUserPage(${i})" ${i === userPage ? 'style="background:#0078d4;color:white"' : ''}>${i}</button>`;
+            }
+            document.getElementById('userPagination').innerHTML = pagHtml;
+        }
+
+        async function viewUserDetail(userId) {
+            const data = await apiCall(`/admin/user/${userId}`);
+            if (data.code !== 200) { showToast('查看失败', 'error'); return; }
+            const u = data.data.user || data.data;
+            const p = data.data.profile;
+            const createdTeams = data.data.createdTeams || [];
+            const joinedTeams = data.data.joinedTeams || [];
+            document.getElementById('detail-body').innerHTML = `
+                <h3>用户详情 - ${u.username}</h3>
+                <div class="detail-grid">
+                    <div class="detail-item"><label>用户ID</label><span>${u.userId}</span></div>
+                    <div class="detail-item"><label>性别</label><span>${u.gender === 1 ? '男' : u.gender === 2 ? '女' : '未设置'}</span></div>
+                    <div class="detail-item"><label>年龄</label><span>${u.age || '无'}</span></div>
+                    <div class="detail-item"><label>联系方式</label><span>${u.contact || '无'}</span></div>
+                    <div class="detail-item"><label>角色</label><span>${u.role === 9 ? '管理员' : u.role === 1 ? '队长' : '普通用户'}</span></div>
+                    <div class="detail-item"><label>状态</label><span>${u.status == 1 ? '正常' : '禁用'}</span></div>
+                    <div class="detail-item"><label>注册时间</label><span>${u.createTime || ''}</span></div>
+                </div>
+                ${p ? `<h4>游戏档案</h4>
+                <div class="detail-grid">
+                    <div class="detail-item"><label>游戏</label><span>${p.gameName || '无'}</span></div>
+                    <div class="detail-item"><label>段位</label><span>${p.gameRank || '无'}</span></div>
+                    <div class="detail-item"><label>胜率</label><span>${p.winRate || '0'}%</span></div>
+                    <div class="detail-item"><label>场次</label><span>${p.totalMatches || 0}</span></div>
+                </div>` : ''}
+                <h4>创建的队伍 (${createdTeams.length})</h4>
+                <ul>${createdTeams.map(t => `<li>${t.teamName} (状态:${t.status==1?'正常':'解散'})</li>`).join('')}</ul>
+                <h4>加入的队伍 (${joinedTeams.length})</h4>
+                <ul>${joinedTeams.map(t => `<li>${t.teamName}</li>`).join('')}</ul>
+            `;
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        async function toggleUserStatus(userId, newStatus) {
+            if (!confirm(`确定${newStatus===0?'禁用':'启用'}该用户吗？`)) return;
+            const data = await apiCall(`/admin/user/${userId}/status`, 'PUT', { status: newStatus });
+            showToast(data.msg, data.code === 200 ? 'success' : 'error');
+            if (data.code === 200) loadUsers(userPage);
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('删除用户将不可恢复！')) return;
+            const data = await apiCall(`/admin/user/${userId}`, 'DELETE');
+            showToast(data.msg, data.code === 200 ? 'success' : 'error');
+            if (data.code === 200) loadUsers(userPage);
+        }
+
+        // ==================== 队伍管理 ====================
+        let teamList = [];
+        let teamPage = 1;
+        async function loadTeams(page = 1, keyword = '', status = '') {
+            teamPage = page;
+            const main = document.getElementById('main-content');
+            main.innerHTML = '<h2>队伍管理</h2><div class="search-bar"><input id="teamSearch" placeholder="搜索队伍名" value="'+keyword+'"><select id="teamStatus"><option value="">全部状态</option><option value="1">正常</option><option value="0">禁用</option></select><button class="btn-primary" onclick="loadTeams(1, document.getElementById(\'teamSearch\').value, document.getElementById(\'teamStatus\').value)">搜索</button></div><div id="teamTable"></div><div id="teamPagination" class="pagination"></div>';
+            
+            const data = await apiCall('/admin/teams');
+            if (data.code !== 200) { showToast('加载失败', 'error'); return; }
+            let allTeams = Array.isArray(data.data) ? data.data : (data.data && data.data.list ? data.data.list : []);
+            let filtered = allTeams;
+            if (keyword) {
+                filtered = filtered.filter(t => t.teamName.includes(keyword));
+            }
+            if (status) {
+                filtered = filtered.filter(t => t.status == status);
+            }
+            teamList = filtered;
+            renderTeamPage(page);
+        }
+
+        function renderTeamPage(page) {
+            const start = (page - 1) * PAGE_SIZE;
+            const pageTeams = teamList.slice(start, start + PAGE_SIZE);
+            let html = '<table><tr><th>ID</th><th>队伍名</th><th>队长</th><th>人数</th><th>状态</th><th>操作</th></tr>';
+            pageTeams.forEach(t => {
+                html += `<tr>
+                    <td>${t.teamId}</td><td>${t.teamName}</td>
+                    <td>${t.leaderName || t.leaderId}</td>
+                    <td>${t.currentCount}/${t.needCount}</td>
+                    <td>${t.status == 1 ? '<span class="badge badge-normal">正常</span>' : '<span class="badge badge-disabled">禁用</span>'}</td>
+                    <td>
+                        <button class="btn-info" onclick="viewTeamDetail(${t.teamId})">详情</button>
+                        <button class="btn-danger" onclick="deleteTeam(${t.teamId})">删除</button>
+                    </td>
+                </tr>`;
+            });
+            html += '</table>';
+            document.getElementById('teamTable').innerHTML = html;
+            const totalPages = Math.ceil(teamList.length / PAGE_SIZE);
+            let pagHtml = '';
+            for (let i = 1; i <= totalPages; i++) {
+                pagHtml += `<button onclick="renderTeamPage(${i})" ${i === page ? 'style="background:#0078d4;color:white"' : ''}>${i}</button>`;
+            }
+            document.getElementById('teamPagination').innerHTML = pagHtml;
+        }
+
+        async function viewTeamDetail(teamId) {
+            const data = await apiCall(`/admin/team/${teamId}`);
+            if (data.code !== 200) { showToast('查看失败', 'error'); return; }
+            // 后端返回的是 TeamDetailVO，字段：id, title, avatar, need, desc, leader, comments
+            const t = data.data;
+            document.getElementById('detail-body').innerHTML = `
+                <h3>队伍详情 - ${t.title}</h3>
+                <p><strong>队长：</strong>${t.leader || '未知'}</p>
+                <p><strong>游戏：</strong>${t.need || '未知'}</p>
+                <p><strong>描述：</strong>${t.desc || '无'}</p>
+                <p><strong>状态：</strong>${t.status == 1 ? '正常' : '已解散'}</p>
+                <h4>评论 (${t.comments ? t.comments.length : 0})</h4>
+                ${t.comments && t.comments.length > 0 ? t.comments.map(c => `<p>${c.author}: ${c.text} (${c.time})</p>`).join('') : '<p>暂无</p>'}
+            `;
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        async function deleteTeam(teamId) {
+            if (!confirm('确定强制解散该队伍？')) return;
+            const data = await apiCall(`/admin/team/${teamId}`, 'DELETE');
+            showToast(data.msg, data.code === 200 ? 'success' : 'error');
+            if (data.code === 200) loadTeams(teamPage);
+        }
+
+function adminLogout() {
+    if (confirm('确定退出管理后台？')) {
+        // 保留 currentUser（管理员身份），直接跳转到主页
+        location.href = 'index.html';
+    }
+}
+
+        // 初始化
+        loadDashboard();
+    </script>
+</body>
+</html>

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录注册</title>
     <style>
+        /* 样式完全保留，此处省略，你原有的样式无需改动 */
         * {
             margin: 0;
             padding: 0;
@@ -23,16 +24,16 @@
             overflow: hidden;
         }
 
-            body::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
-                z-index: 0;
-            }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+            z-index: 0;
+        }
 
         .container {
             background: rgba(255, 255, 255, 0.15);
@@ -49,15 +50,8 @@
         }
 
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .title {
@@ -74,32 +68,46 @@
             margin-bottom: 20px;
         }
 
-            .input-group input {
-                width: 100%;
-                padding: 18px 20px 18px 50px;
-                background: rgba(255, 255, 255, 0.9);
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 30px;
-                font-size: 15px;
-                color: #333;
-                outline: none;
-                transition: all 0.3s ease;
-            }
+        .input-group input {
+            width: 100%;
+            padding: 18px 20px 18px 50px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            font-size: 15px;
+            color: #333;
+            outline: none;
+            transition: all 0.3s ease;
+        }
 
-                .input-group input:focus {
-                    background: white;
-                    border-color: rgba(255, 255, 255, 0.5);
-                    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-                }
+        .input-group input:focus {
+            background: white;
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
 
-            .input-group .icon {
-                position: absolute;
-                left: 18px;
-                top: 50%;
-                transform: translateY(-50%);
-                font-size: 20px;
-                color: #666;
-            }
+        .input-group .icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #666;
+        }
+
+        .input-group .password-toggle {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #666;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            user-select: none;
+        }
+
+        .input-group .password-toggle:hover { color: #333; }
 
         .row {
             display: flex;
@@ -117,11 +125,7 @@
             cursor: pointer;
         }
 
-            .remember input {
-                width: 16px;
-                height: 16px;
-                cursor: pointer;
-            }
+        .remember input { width: 16px; height: 16px; cursor: pointer; }
 
         .forgot {
             color: white;
@@ -130,9 +134,7 @@
             transition: opacity 0.3s;
         }
 
-            .forgot:hover {
-                opacity: 0.8;
-            }
+        .forgot:hover { opacity: 0.8; }
 
         .login-btn {
             width: 100%;
@@ -148,10 +150,10 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-            .login-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-            }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
 
         .register-link {
             text-align: center;
@@ -160,17 +162,15 @@
             font-size: 15px;
         }
 
-            .register-link a {
-                color: white;
-                font-weight: 600;
-                text-decoration: none;
-                margin-left: 5px;
-                transition: opacity 0.3s;
-            }
+        .register-link a {
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+            margin-left: 5px;
+            transition: opacity 0.3s;
+        }
 
-                .register-link a:hover {
-                    opacity: 0.8;
-                }
+        .register-link a:hover { opacity: 0.8; }
 
         .message {
             margin: 15px 0;
@@ -195,23 +195,12 @@
             display: block;
         }
 
-        #register-form {
-            display: none;
-        }
-
-            #register-form.active {
-                display: block;
-                animation: fadeIn 0.4s ease;
-            }
+        #register-form { display: none; }
+        #register-form.active { display: block; animation: fadeIn 0.4s ease; }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .back-login {
@@ -221,11 +210,11 @@
             font-size: 14px;
         }
 
-            .back-login a {
-                color: white;
-                text-decoration: none;
-                font-weight: 600;
-            }
+        .back-login a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -241,6 +230,7 @@
             <div class="input-group">
                 <span class="icon">🔒</span>
                 <input type="password" id="login-pwd" placeholder="请输入密码">
+                <span class="password-toggle" onclick="togglePassword('login-pwd', this)">👁️</span>
             </div>
             <div class="row">
                 <label class="remember">
@@ -264,6 +254,7 @@
             <div class="input-group">
                 <span class="icon">🔒</span>
                 <input type="password" id="register-pwd" placeholder="设置密码">
+                <span class="password-toggle" onclick="togglePassword('register-pwd', this)">👁️</span>
             </div>
             <button class="login-btn" onclick="register()">Register</button>
             <div class="back-login">
@@ -273,15 +264,19 @@
     </div>
 
     <script>
+        // ========== 页面加载时自动检查 ==========
         window.onload = function () {
-            // 如果已登录且资料完整，直接进入首页
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             if (currentUser && currentUser.user_id) {
-                // 简单判断一下有没有昵称（nick），有就直接进首页
+                // 如果是管理员，直接进入后台
+                if (currentUser.role === 9) {
+                    location.href = 'admin.html';
+                    return;
+                }
+                // 普通用户：资料完整进首页，不完整去编辑
                 if (currentUser.nick && currentUser.nick.trim() !== '') {
                     location.href = 'index.html';
                 } else {
-                    // 有登录但没有昵称，去编辑资料页
                     location.href = 'user.html';
                 }
             }
@@ -307,6 +302,17 @@
             msg.className = 'message ' + (isSuccess ? 'success' : 'error');
         }
 
+        function togglePassword(inputId, iconElement) {
+            const passwordInput = document.getElementById(inputId);
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                iconElement.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                iconElement.textContent = '👁️';
+            }
+        }
+
         // ====================== 登录 ======================
         async function login() {
             const username = document.getElementById('login-name').value.trim();
@@ -317,8 +323,53 @@
                 return;
             }
 
+            // ========== Mock 模式开关（测试完请设为 false）==========
+            const MOCK_MODE = false;   // ← 已改为 false，对接真实后端
+
+            if (MOCK_MODE) {
+                // 模拟登录（测试用）
+                let mockResult;
+                if (username === 'admin' && password === '123456') {
+                    mockResult = {
+                        code: 200, msg: '管理员登录成功',
+                        user_id: 4, username: 'admin', role: 9,
+                        token: 'mock-admin-token'
+                    };
+                } else if (username === 'user1' && password === '123456') {
+                    mockResult = {
+                        code: 200, msg: '登录成功',
+                        user_id: 1, username: 'user1', role: 0,
+                        token: 'mock-token'
+                    };
+                } else {
+                    mockResult = { code: 500, msg: '用户名或密码错误' };
+                }
+
+                if (mockResult.code === 200) {
+                    showMessage(mockResult.msg, true);
+                    const basicInfo = {
+                        user_id: mockResult.user_id,
+                        username: mockResult.username,
+                        role: mockResult.role,
+                        token: mockResult.token
+                    };
+                    localStorage.setItem("currentUser", JSON.stringify(basicInfo));
+
+                    if (mockResult.role === 9) {
+                        setTimeout(() => { location.href = "admin.html"; }, 800);
+                    } else {
+                        localStorage.setItem('needCompleteProfile', 'true');
+                        setTimeout(() => { location.href = "user.html"; }, 800);
+                    }
+                } else {
+                    showMessage(mockResult.msg, false);
+                }
+                return;
+            }
+
+            // ========== 真实后端请求 ==========
             try {
-                const response = await fetch("http://172.27.242.62:8081/login", {
+                const response = await fetch("http://localhost:8081/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username, password })
@@ -328,30 +379,33 @@
                 if (result.code === 200) {
                     showMessage(result.msg, true);
 
-                    // 先保存基础登录信息
+                    // 保存基础信息，包含角色
                     const basicInfo = {
                         user_id: result.user_id,
                         username: result.username,
+                        role: result.role,        // 后端已返回 role
                         token: result.token
                     };
                     localStorage.setItem("currentUser", JSON.stringify(basicInfo));
 
-                    // 获取完整用户资料，判断是否完善
+                    // 管理员直接进后台
+                    if (result.role === 9) {
+                        setTimeout(() => { location.href = "admin.html"; }, 1000);
+                        return;
+                    }
+
+                    // 普通用户：拉取完整资料，判断是否需要完善信息
                     try {
-                        const infoRes = await fetch(`http://172.27.242.62:8081/user/info?userId=${result.user_id}`);
+                        const infoRes = await fetch(`http://localhost:8081/user/info?userId=${result.user_id}`);
                         const infoData = await infoRes.json();
                         if (infoData.code === 200 && infoData.data) {
-                            // 用完整信息覆盖 currentUser
                             localStorage.setItem("currentUser", JSON.stringify(infoData.data));
                             const u = infoData.data;
-
-                            // 判断必备字段是否齐全
                             const requiredFields = ['nick', 'age', 'game_name', 'personality', 'playtime', 'matchneed', 'contact'];
                             const incomplete = requiredFields.some(f => {
                                 const val = u[f];
                                 return !val || val === '' || val === 0;
                             });
-
                             if (incomplete) {
                                 localStorage.setItem('needCompleteProfile', 'true');
                                 setTimeout(() => { location.href = "user.html"; }, 1000);
@@ -360,7 +414,6 @@
                                 setTimeout(() => { location.href = "index.html"; }, 1000);
                             }
                         } else {
-                            // 获取资料失败，也引导去编辑
                             localStorage.setItem('needCompleteProfile', 'true');
                             setTimeout(() => { location.href = "user.html"; }, 1000);
                         }
@@ -388,7 +441,7 @@
             }
 
             try {
-                const response = await fetch("http://172.27.242.62:8081/register", {
+                const response = await fetch("http://localhost:8081/register", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

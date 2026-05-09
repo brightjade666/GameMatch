@@ -13,7 +13,8 @@
         }
 
         .top-bar {
-            height: 50px;
+            height: auto; /* 让高度由内容撑开 */
+            min-height: 50px; /* 保证最小高度 */
             background: #fff;
             border-bottom: 1px solid #ddd;
             display: flex;
@@ -24,13 +25,14 @@
         }
 
         .back-btn {
-            cursor: pointer;
-            font-size: 20px;
-            color: #333;
-            text-decoration: none;
-            background: none;
+            padding: 6px 12px;
+            background: #0078d7;
+            color: #fff;
             border: none;
-            padding: 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none; /* 确保没有下划线 */
         }
 
         .top-bar h4 {
@@ -84,6 +86,7 @@
             outline: none;
             transition: 0.2s;
             background: #fafafa;
+            box-sizing: border-box;
         }
 
             .filter-group select:focus, .filter-group input:focus {
@@ -410,7 +413,7 @@
 
     <div class="match-wrapper">
         <div class="filter-panel">
-            <h3>🎯 匹配筛选</h3>
+            <h3> 匹配筛选</h3>
             <!-- 替换原有的游戏筛选部分 -->
             <div class="filter-group">
                 <label>常玩游戏</label>
@@ -508,7 +511,7 @@
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             if (!currentUser) return friendIds;
             try {
-                const res = await fetch(`http://172.27.242.62:8081/friend/list?userId=${currentUser.user_id}`);
+                const res = await fetch(`http://localhost:8081/friend/list?userId=${currentUser.user_id}`);
                 const data = await res.json();
                 if (data.code === 200 && data.data && Array.isArray(data.data)) {
                     data.data.forEach(f => {
@@ -550,7 +553,7 @@
                 if (personality) params.append('personality', personality);
                 params.append('excludeUserId', currentUser.user_id);
 
-                const res = await fetch(`http://172.27.242.62:8081/user/matchAdvanced?${params.toString()}`);
+                const res = await fetch(`http://localhost:8081/user/matchAdvanced?${params.toString()}`);
                 const result = await res.json();
 
                 // 获取好友ID集合并过滤
@@ -581,7 +584,7 @@
             let html = '<h3>✨ 匹配结果</h3>';
             users.forEach(u => {
                 const score = u.matchScore || 75;
-                const avatar = u.avatar ? (u.avatar.startsWith('http') ? u.avatar : 'http://172.27.242.62:8081' + u.avatar) : 'https://ui-avatars.com/api/?name=User';
+                const avatar = u.avatar ? (u.avatar.startsWith('http') ? u.avatar : 'http://localhost:8081' + u.avatar) : 'https://ui-avatars.com/api/?name=User';
                 html += `
                         <div class="match-card">
                             <img class="match-avatar" src="${avatar}" onerror="this.src='https://ui-avatars.com/api/?name=User'">
@@ -637,7 +640,7 @@
             document.getElementById('applyModal').classList.remove('show');
             if (!pendingToUserId) return;
             try {
-                const res = await fetch(`http://172.27.242.62:8081/friend/apply?fromUserId=${currentUser.user_id}&toUserId=${pendingToUserId}&reason=${encodeURIComponent(reason)}`, { method: 'POST' });
+                const res = await fetch(`http://localhost:8081/friend/apply?fromUserId=${currentUser.user_id}&toUserId=${pendingToUserId}&reason=${encodeURIComponent(reason)}`, { method: 'POST' });
                 const result = await res.json();
                 if (result.code === 200) showToast('申请已发送', 'success');
                 else showToast(result.msg || '申请失败', 'error');
