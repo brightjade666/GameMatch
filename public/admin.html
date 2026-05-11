@@ -253,9 +253,6 @@
                 ${p ? `<h4>游戏档案</h4>
                 <div class="detail-grid">
                     <div class="detail-item"><label>游戏</label><span>${p.gameName || '无'}</span></div>
-                    <div class="detail-item"><label>段位</label><span>${p.gameRank || '无'}</span></div>
-                    <div class="detail-item"><label>胜率</label><span>${p.winRate || '0'}%</span></div>
-                    <div class="detail-item"><label>场次</label><span>${p.totalMatches || 0}</span></div>
                 </div>` : ''}
                 <h4>创建的队伍 (${createdTeams.length})</h4>
                 <ul>${createdTeams.map(t => `<li>${t.teamName} (状态:${t.status==1?'正常':'解散'})</li>`).join('')}</ul>

@@ -24,7 +24,7 @@
         .profile-content img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
         .profile-row { margin-bottom: 15px; }
         .profile-row label { font-size: 13px; color: #666; }
-        .profile-row span { font-size: 15px; color: #333; margin-left: 8px; }
+        .profile-row span { font-size: 15px; color: #333; margin-left: 8px; word-break: break-all; }
         .close-profile { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #999; }
         .profile-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index:2000; align-items: center; justify-content: center; }
         .profile-modal.show { display: flex; }

@@ -139,17 +139,6 @@
                 cursor: pointer;
             }
 
-        .forgot {
-            color: white;
-            font-size: 14px;
-            text-decoration: none;
-            transition: opacity 0.3s;
-        }
-
-            .forgot:hover {
-                opacity: 0.8;
-            }
-
         .login-btn {
             width: 100%;
             padding: 16px;
@@ -220,6 +209,7 @@
                 font-weight: 600;
             }
 
+        /* 密码强度 */
         .password-strength {
             margin-top: -12px;
             margin-bottom: 15px;
@@ -240,8 +230,10 @@
             color: white;
             text-align: right;
             margin-top: 2px;
+            margin-bottom: 15px;
         }
-        /* Toast 提示 */
+
+        /* Toast */
         .toast {
             position: fixed;
             top: 30px;
@@ -254,7 +246,7 @@
             animation: slideIn 0.4s ease;
             box-shadow: 0 6px 18px rgba(0,0,0,0.15);
             pointer-events: none;
-            max-width: 300px;
+            max-width: 350px;
             word-break: break-word;
         }
 
@@ -290,7 +282,7 @@
 </head>
 <body>
     <div class="container">
-        <!-- Toast 消息将由 JS 动态创建，移除原来的 message div -->
+
         <!-- 登录表单 -->
         <div id="login-form">
             <h1 class="page-title">欢迎回来</h1>
@@ -308,7 +300,6 @@
                     <input type="checkbox" id="remember-me">
                     <span>记住我</span>
                 </label>
-                <a href="#" class="forgot">忘记密码?</a>
             </div>
             <button class="login-btn" onclick="login()">登 录</button>
             <div class="register-link">
@@ -328,7 +319,6 @@
                 <input type="password" id="register-pwd" placeholder="设置密码（8-20位，含数字和字符）" oninput="updatePasswordStrength()">
                 <span class="password-toggle" onclick="togglePassword('register-pwd', this)">👁️</span>
             </div>
-            <!-- 密码强度提示 -->
             <div class="password-strength">
                 <div class="password-strength-bar" id="strength-bar"></div>
             </div>
@@ -348,10 +338,16 @@
     </div>
 
     <script>
+        // ========== 页面加载时自动检查 ==========
         window.onload = function () {
-            // 如果已登录且资料完整，直接进入首页
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             if (currentUser && currentUser.user_id) {
+                // 如果是管理员，直接进入后台
+                if (currentUser.role === 9) {
+                    location.href = 'admin.html';
+                    return;
+                }
+                // 普通用户：资料完整进首页，不完整去编辑
                 if (currentUser.nick && currentUser.nick.trim() !== '') {
                     location.href = 'index.html';
                 } else {
@@ -377,7 +373,7 @@
             }
         }
 
-        // Toast 消息提示
+        // Toast 消息（自动消失）
         function showToast(msg, type = 'info') {
             const toast = document.createElement('div');
             toast.className = 'toast toast-' + type;
@@ -389,7 +385,7 @@
             }, 3000);
         }
 
-        // 密码显示/隐藏切换
+        // 密码显示/隐藏
         function togglePassword(inputId, iconElement) {
             const input = document.getElementById(inputId);
             if (input.type === 'password') {
@@ -401,7 +397,7 @@
             }
         }
 
-        // 密码强度实时计算
+        // 密码强度
         function updatePasswordStrength() {
             const pwd = document.getElementById('register-pwd').value;
             const bar = document.getElementById('strength-bar');
@@ -415,35 +411,29 @@
             const percent = (strength / 5) * 100;
             bar.style.width = percent + '%';
             if (strength <= 2) {
-                bar.style.background = '#dc3545';
-                text.textContent = '弱';
-                text.style.color = '#dc3545';
+                bar.style.background = '#dc3545'; text.textContent = '弱'; text.style.color = '#dc3545';
             } else if (strength <= 4) {
-                bar.style.background = '#ffc107';
-                text.textContent = '中';
-                text.style.color = '#ffc107';
+                bar.style.background = '#ffc107'; text.textContent = '中'; text.style.color = '#ffc107';
             } else {
-                bar.style.background = '#28a745';
-                text.textContent = '强';
-                text.style.color = '#28a745';
+                bar.style.background = '#28a745'; text.textContent = '强'; text.style.color = '#28a745';
             }
         }
 
-        // 密码格式校验（一次返回所有问题）
+        // 密码校验（一次返回所有问题）
         function validatePassword(password) {
             const errors = [];
             if (password.length < 8 || password.length > 20) {
                 errors.push('密码长度需在8-20位之间');
             }
             const hasNumber = /\d/.test(password);
-            const hasChar = /[a-zA-Z\W_]/.test(password); // 字母或特殊字符
+            const hasChar = /[a-zA-Z\W_]/.test(password);
             if (!hasNumber || !hasChar) {
-                errors.push('密码必须同时包含数字和字符（字母/符号）');
+                errors.push('密码必须同时包含数字和字符');
             }
             return errors;
         }
 
-        // 登录
+        // ====================== 登录 ======================
         async function login() {
             const username = document.getElementById('login-name').value.trim();
             const password = document.getElementById('login-pwd').value.trim();
@@ -464,13 +454,22 @@
                 if (result.code === 200) {
                     showToast(result.msg, 'success');
 
+                    // 保存基础信息（包含 role） ★ 这是管理员判断的关键
                     const basicInfo = {
                         user_id: result.user_id,
                         username: result.username,
+                        role: result.role,
                         token: result.token
                     };
                     localStorage.setItem("currentUser", JSON.stringify(basicInfo));
 
+                    // ★ 管理员直接进后台，不等资料拉取
+                    if (result.role === 9) {
+                        setTimeout(() => { location.href = "admin.html"; }, 800);
+                        return;
+                    }
+
+                    // 普通用户：拉取完整资料，判断是否需要完善信息
                     try {
                         const infoRes = await fetch(`http://localhost:8081/user/info?userId=${result.user_id}`);
                         const infoData = await infoRes.json();
@@ -506,7 +505,7 @@
             }
         }
 
-        // 注册
+        // ====================== 注册 ======================
         async function register() {
             const username = document.getElementById('register-name').value.trim();
             const password = document.getElementById('register-pwd').value;
@@ -517,7 +516,7 @@
                 return;
             }
 
-            // 一次性收集密码错误
+            // 一次提示所有密码问题
             const pwdErrors = validatePassword(password);
             if (pwdErrors.length > 0) {
                 showToast('密码要求：' + pwdErrors.join('；'), 'error');
