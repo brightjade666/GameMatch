@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录注册</title>
     <style>
-        /* 样式完全保留，此处省略，你原有的样式无需改动 */
         * {
             margin: 0;
             padding: 0;
@@ -24,16 +23,16 @@
             overflow: hidden;
         }
 
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
-            z-index: 0;
-        }
+            body::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+                z-index: 0;
+            }
 
         .container {
             background: rgba(255, 255, 255, 0.15);
@@ -50,11 +49,18 @@
         }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .title {
+        .page-title {
             text-align: center;
             color: white;
             font-size: 36px;
@@ -68,46 +74,48 @@
             margin-bottom: 20px;
         }
 
-        .input-group input {
-            width: 100%;
-            padding: 18px 20px 18px 50px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 30px;
-            font-size: 15px;
-            color: #333;
-            outline: none;
-            transition: all 0.3s ease;
-        }
+            .input-group input {
+                width: 100%;
+                padding: 18px 20px 18px 50px;
+                background: rgba(255, 255, 255, 0.9);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 30px;
+                font-size: 15px;
+                color: #333;
+                outline: none;
+                transition: all 0.3s ease;
+            }
 
-        .input-group input:focus {
-            background: white;
-            border-color: rgba(255, 255, 255, 0.5);
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-        }
+                .input-group input:focus {
+                    background: white;
+                    border-color: rgba(255, 255, 255, 0.5);
+                    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+                }
 
-        .input-group .icon {
-            position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 20px;
-            color: #666;
-        }
+            .input-group .icon {
+                position: absolute;
+                left: 18px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 20px;
+                color: #666;
+            }
 
-        .input-group .password-toggle {
-            position: absolute;
-            right: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 20px;
-            color: #666;
-            cursor: pointer;
-            transition: color 0.3s ease;
-            user-select: none;
-        }
+            .input-group .password-toggle {
+                position: absolute;
+                right: 18px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 20px;
+                color: #666;
+                cursor: pointer;
+                transition: color 0.3s ease;
+                user-select: none;
+            }
 
-        .input-group .password-toggle:hover { color: #333; }
+                .input-group .password-toggle:hover {
+                    color: #333;
+                }
 
         .row {
             display: flex;
@@ -125,7 +133,11 @@
             cursor: pointer;
         }
 
-        .remember input { width: 16px; height: 16px; cursor: pointer; }
+            .remember input {
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+            }
 
         .forgot {
             color: white;
@@ -134,7 +146,9 @@
             transition: opacity 0.3s;
         }
 
-        .forgot:hover { opacity: 0.8; }
+            .forgot:hover {
+                opacity: 0.8;
+            }
 
         .login-btn {
             width: 100%;
@@ -150,10 +164,10 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-        }
+            .login-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            }
 
         .register-link {
             text-align: center;
@@ -162,45 +176,35 @@
             font-size: 15px;
         }
 
-        .register-link a {
-            color: white;
-            font-weight: 600;
-            text-decoration: none;
-            margin-left: 5px;
-            transition: opacity 0.3s;
-        }
+            .register-link a {
+                color: white;
+                font-weight: 600;
+                text-decoration: none;
+                margin-left: 5px;
+                transition: opacity 0.3s;
+            }
 
-        .register-link a:hover { opacity: 0.8; }
+                .register-link a:hover {
+                    opacity: 0.8;
+                }
 
-        .message {
-            margin: 15px 0;
-            padding: 12px;
-            border-radius: 10px;
-            text-align: center;
+        #register-form {
             display: none;
-            font-size: 14px;
         }
 
-        .success {
-            background: rgba(76, 175, 80, 0.2);
-            color: #4CAF50;
-            border: 1px solid rgba(76, 175, 80, 0.3);
-            display: block;
-        }
-
-        .error {
-            background: rgba(244, 67, 54, 0.2);
-            color: #F44336;
-            border: 1px solid rgba(244, 67, 54, 0.3);
-            display: block;
-        }
-
-        #register-form { display: none; }
-        #register-form.active { display: block; animation: fadeIn 0.4s ease; }
+            #register-form.active {
+                display: block;
+                animation: fadeIn 0.4s ease;
+            }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .back-login {
@@ -210,19 +214,86 @@
             font-size: 14px;
         }
 
-        .back-login a {
+            .back-login a {
+                color: white;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+        .password-strength {
+            margin-top: -12px;
+            margin-bottom: 15px;
+            height: 4px;
+            background: #eee;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+
+        .password-strength-text {
+            font-size: 12px;
             color: white;
-            text-decoration: none;
-            font-weight: 600;
+            text-align: right;
+            margin-top: 2px;
+        }
+        /* Toast 提示 */
+        .toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 14px 24px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            animation: slideIn 0.4s ease;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+            pointer-events: none;
+            max-width: 300px;
+            word-break: break-word;
+        }
+
+        .toast-success {
+            background: #28a745;
+        }
+
+        .toast-error {
+            background: #dc3545;
+        }
+
+        .toast-info {
+            background: #0078d4;
+        }
+
+        .toast-hidden {
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="message" class="message"></div>
-
+        <!-- Toast 消息将由 JS 动态创建，移除原来的 message div -->
+        <!-- 登录表单 -->
         <div id="login-form">
-            <h1 class="title">WELCOME</h1>
+            <h1 class="page-title">欢迎回来</h1>
             <div class="input-group">
                 <span class="icon">👤</span>
                 <input type="text" id="login-name" placeholder="请输入用户名">
@@ -235,45 +306,52 @@
             <div class="row">
                 <label class="remember">
                     <input type="checkbox" id="remember-me">
-                    <span>Remember me</span>
+                    <span>记住我</span>
                 </label>
-                <a href="#" class="forgot">Forgot password?</a>
+                <a href="#" class="forgot">忘记密码?</a>
             </div>
-            <button class="login-btn" onclick="login()">Login</button>
+            <button class="login-btn" onclick="login()">登 录</button>
             <div class="register-link">
-                Don't have an account? <a href="javascript:switchTab('register')">Register</a>
+                还没有账号？<a href="javascript:switchTab('register')">立即注册</a>
             </div>
         </div>
 
+        <!-- 注册表单 -->
         <div id="register-form">
-            <h1 class="title">REGISTER</h1>
+            <h1 class="page-title">创建账号</h1>
             <div class="input-group">
                 <span class="icon">👤</span>
                 <input type="text" id="register-name" placeholder="设置用户名">
             </div>
             <div class="input-group">
                 <span class="icon">🔒</span>
-                <input type="password" id="register-pwd" placeholder="设置密码">
+                <input type="password" id="register-pwd" placeholder="设置密码（8-20位，含数字和字符）" oninput="updatePasswordStrength()">
                 <span class="password-toggle" onclick="togglePassword('register-pwd', this)">👁️</span>
             </div>
-            <button class="login-btn" onclick="register()">Register</button>
+            <!-- 密码强度提示 -->
+            <div class="password-strength">
+                <div class="password-strength-bar" id="strength-bar"></div>
+            </div>
+            <div class="password-strength-text" id="strength-text"></div>
+
+            <div class="input-group">
+                <span class="icon">🔒</span>
+                <input type="password" id="register-pwd-confirm" placeholder="确认密码">
+                <span class="password-toggle" onclick="togglePassword('register-pwd-confirm', this)">👁️</span>
+            </div>
+
+            <button class="login-btn" onclick="register()">注 册</button>
             <div class="back-login">
-                Already have an account? <a href="javascript:switchTab('login')">Back to Login</a>
+                已有账号？<a href="javascript:switchTab('login')">返回登录</a>
             </div>
         </div>
     </div>
 
     <script>
-        // ========== 页面加载时自动检查 ==========
         window.onload = function () {
+            // 如果已登录且资料完整，直接进入首页
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             if (currentUser && currentUser.user_id) {
-                // 如果是管理员，直接进入后台
-                if (currentUser.role === 9) {
-                    location.href = 'admin.html';
-                    return;
-                }
-                // 普通用户：资料完整进首页，不完整去编辑
                 if (currentUser.nick && currentUser.nick.trim() !== '') {
                     location.href = 'index.html';
                 } else {
@@ -285,89 +363,96 @@
         function switchTab(type) {
             const loginForm = document.getElementById('login-form');
             const registerForm = document.getElementById('register-form');
-            const message = document.getElementById('message');
             if (type === 'login') {
                 loginForm.style.display = 'block';
                 registerForm.style.display = 'none';
             } else {
                 loginForm.style.display = 'none';
                 registerForm.style.display = 'block';
+                // 清空注册表单
+                document.getElementById('register-name').value = '';
+                document.getElementById('register-pwd').value = '';
+                document.getElementById('register-pwd-confirm').value = '';
+                updatePasswordStrength();
             }
-            message.className = 'message';
         }
 
-        function showMessage(text, isSuccess) {
-            const msg = document.getElementById('message');
-            msg.textContent = text;
-            msg.className = 'message ' + (isSuccess ? 'success' : 'error');
+        // Toast 消息提示
+        function showToast(msg, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('toast-hidden');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
         }
 
+        // 密码显示/隐藏切换
         function togglePassword(inputId, iconElement) {
-            const passwordInput = document.getElementById(inputId);
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
                 iconElement.textContent = '🙈';
             } else {
-                passwordInput.type = 'password';
+                input.type = 'password';
                 iconElement.textContent = '👁️';
             }
         }
 
-        // ====================== 登录 ======================
+        // 密码强度实时计算
+        function updatePasswordStrength() {
+            const pwd = document.getElementById('register-pwd').value;
+            const bar = document.getElementById('strength-bar');
+            const text = document.getElementById('strength-text');
+            let strength = 0;
+            if (pwd.length >= 8) strength++;
+            if (pwd.length >= 12) strength++;
+            if (/\d/.test(pwd)) strength++;
+            if (/[a-zA-Z]/.test(pwd)) strength++;
+            if (/[^a-zA-Z0-9]/.test(pwd)) strength++;
+            const percent = (strength / 5) * 100;
+            bar.style.width = percent + '%';
+            if (strength <= 2) {
+                bar.style.background = '#dc3545';
+                text.textContent = '弱';
+                text.style.color = '#dc3545';
+            } else if (strength <= 4) {
+                bar.style.background = '#ffc107';
+                text.textContent = '中';
+                text.style.color = '#ffc107';
+            } else {
+                bar.style.background = '#28a745';
+                text.textContent = '强';
+                text.style.color = '#28a745';
+            }
+        }
+
+        // 密码格式校验（一次返回所有问题）
+        function validatePassword(password) {
+            const errors = [];
+            if (password.length < 8 || password.length > 20) {
+                errors.push('密码长度需在8-20位之间');
+            }
+            const hasNumber = /\d/.test(password);
+            const hasChar = /[a-zA-Z\W_]/.test(password); // 字母或特殊字符
+            if (!hasNumber || !hasChar) {
+                errors.push('密码必须同时包含数字和字符（字母/符号）');
+            }
+            return errors;
+        }
+
+        // 登录
         async function login() {
             const username = document.getElementById('login-name').value.trim();
             const password = document.getElementById('login-pwd').value.trim();
 
             if (!username || !password) {
-                showMessage('用户名和密码不能为空', false);
+                showToast('用户名和密码不能为空', 'error');
                 return;
             }
 
-            // ========== Mock 模式开关（测试完请设为 false）==========
-            const MOCK_MODE = false;   // ← 已改为 false，对接真实后端
-
-            if (MOCK_MODE) {
-                // 模拟登录（测试用）
-                let mockResult;
-                if (username === 'admin' && password === '123456') {
-                    mockResult = {
-                        code: 200, msg: '管理员登录成功',
-                        user_id: 4, username: 'admin', role: 9,
-                        token: 'mock-admin-token'
-                    };
-                } else if (username === 'user1' && password === '123456') {
-                    mockResult = {
-                        code: 200, msg: '登录成功',
-                        user_id: 1, username: 'user1', role: 0,
-                        token: 'mock-token'
-                    };
-                } else {
-                    mockResult = { code: 500, msg: '用户名或密码错误' };
-                }
-
-                if (mockResult.code === 200) {
-                    showMessage(mockResult.msg, true);
-                    const basicInfo = {
-                        user_id: mockResult.user_id,
-                        username: mockResult.username,
-                        role: mockResult.role,
-                        token: mockResult.token
-                    };
-                    localStorage.setItem("currentUser", JSON.stringify(basicInfo));
-
-                    if (mockResult.role === 9) {
-                        setTimeout(() => { location.href = "admin.html"; }, 800);
-                    } else {
-                        localStorage.setItem('needCompleteProfile', 'true');
-                        setTimeout(() => { location.href = "user.html"; }, 800);
-                    }
-                } else {
-                    showMessage(mockResult.msg, false);
-                }
-                return;
-            }
-
-            // ========== 真实后端请求 ==========
             try {
                 const response = await fetch("http://localhost:8081/login", {
                     method: "POST",
@@ -377,24 +462,15 @@
                 const result = await response.json();
 
                 if (result.code === 200) {
-                    showMessage(result.msg, true);
+                    showToast(result.msg, 'success');
 
-                    // 保存基础信息，包含角色
                     const basicInfo = {
                         user_id: result.user_id,
                         username: result.username,
-                        role: result.role,        // 后端已返回 role
                         token: result.token
                     };
                     localStorage.setItem("currentUser", JSON.stringify(basicInfo));
 
-                    // 管理员直接进后台
-                    if (result.role === 9) {
-                        setTimeout(() => { location.href = "admin.html"; }, 1000);
-                        return;
-                    }
-
-                    // 普通用户：拉取完整资料，判断是否需要完善信息
                     try {
                         const infoRes = await fetch(`http://localhost:8081/user/info?userId=${result.user_id}`);
                         const infoData = await infoRes.json();
@@ -422,21 +498,35 @@
                         setTimeout(() => { location.href = "user.html"; }, 1000);
                     }
                 } else {
-                    showMessage(result.msg, false);
+                    showToast(result.msg, 'error');
                 }
             } catch (err) {
-                showMessage('服务器连接失败', false);
+                showToast('服务器连接失败', 'error');
                 console.error(err);
             }
         }
 
-        // ====================== 注册 ======================
+        // 注册
         async function register() {
             const username = document.getElementById('register-name').value.trim();
-            const password = document.getElementById('register-pwd').value.trim();
+            const password = document.getElementById('register-pwd').value;
+            const confirmPwd = document.getElementById('register-pwd-confirm').value;
 
             if (!username || !password) {
-                showMessage('用户名和密码不能为空', false);
+                showToast('用户名和密码不能为空', 'error');
+                return;
+            }
+
+            // 一次性收集密码错误
+            const pwdErrors = validatePassword(password);
+            if (pwdErrors.length > 0) {
+                showToast('密码要求：' + pwdErrors.join('；'), 'error');
+                return;
+            }
+
+            // 确认密码对比
+            if (password !== confirmPwd) {
+                showToast('两次输入的密码不一致', 'error');
                 return;
             }
 
@@ -452,13 +542,13 @@
                 });
                 const result = await response.json();
                 if (result.code === 200) {
-                    showMessage(result.msg, true);
+                    showToast(result.msg, 'success');
                     switchTab('login');
                 } else {
-                    showMessage(result.msg, false);
+                    showToast(result.msg, 'error');
                 }
             } catch (err) {
-                showMessage('注册失败：服务器连接失败', false);
+                showToast('注册失败：服务器连接失败', 'error');
                 console.error(err);
             }
         }
