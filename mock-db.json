@@ -1,0 +1,46 @@
+{
+  "users": [
+    {
+      "nickname": "admin",
+      "avatar": "👑",
+      "role": "admin"
+    },
+    {
+      "nickname": "AI助手",
+      "avatar": "🤖",
+      "role": "member"
+    },
+    {
+      "nickname": "张三",
+      "avatar": "张",
+      "role": "member"
+    },
+    {
+      "nickname": "李四",
+      "avatar": "李",
+      "role": "member"
+    },
+    {
+      "nickname": "王五",
+      "avatar": "王",
+      "role": "member"
+    }
+  ],
+  "groups": [
+    {
+      "id": "default_group",
+      "name": "默认群聊",
+      "avatar": "📢",
+      "creator": "admin",
+      "members": [
+        "admin",
+        "AI助手",
+        "张三"
+      ],
+      "messages": [],
+      "unreadCount": 0,
+      "lastMsg": "欢迎加入默认群聊！",
+      "lastMsgTime": "04-30 14:44"
+    }
+  ]
+}
