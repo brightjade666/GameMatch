@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录注册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: url('https://picsum.photos/id/1039/1920/1080') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+            z-index: 0;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            text-align: center;
+            color: white;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 18px 20px 18px 50px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            font-size: 15px;
+            color: #333;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            background: white;
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+
+        .input-group .icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #666;
+        }
+
+        /* 密码眼睛图标样式 */
+        .input-group .password-toggle {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #666;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            user-select: none;
+        }
+
+        .input-group .password-toggle:hover {
+            color: #333;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0 30px;
+        }
+
+        .remember {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .remember input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .forgot {
+            color: white;
+            font-size: 14px;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        .forgot:hover {
+            opacity: 0.8;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 30px;
+            color: white;
+            font-size: 15px;
+        }
+
+        .register-link a {
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+            margin-left: 5px;
+            transition: opacity 0.3s;
+        }
+
+        .register-link a:hover {
+            opacity: 0.8;
+        }
+
+        .message {
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            font-size: 14px;
+        }
+
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            display: block;
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #F44336;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            display: block;
+        }
+
+        #register-form {
+            display: none;
+        }
+
+        #register-form.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .back-login {
+            text-align: center;
+            margin-top: 20px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .back-login a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="message" class="message"></div>
+
+        <div id="login-form">
+            <h1 class="title">WELCOME</h1>
+            <div class="input-group">
+                <span class="icon">👤</span>
+                <input type="text" id="login-name" placeholder="请输入用户名">
+            </div>
+            <div class="input-group">
+                <span class="icon">🔒</span>
+                <input type="password" id="login-pwd" placeholder="请输入密码">
+                <span class="password-toggle" onclick="togglePassword('login-pwd', this)">👁️</span>
+            </div>
+            <div class="row">
+                <label class="remember">
+                    <input type="checkbox" id="remember-me">
+                    <span>Remember me</span>
+                </label>
+                <a href="#" class="forgot">Forgot password?</a>
+            </div>
+            <button class="login-btn" onclick="login()">Login</button>
+            <div class="register-link">
+                Don't have an account? <a href="javascript:switchTab('register')">Register</a>
+            </div>
+        </div>
+
+        <div id="register-form">
+            <h1 class="title">REGISTER</h1>
+            <div class="input-group">
+                <span class="icon">👤</span>
+                <input type="text" id="register-name" placeholder="设置用户名">
+            </div>
+            <div class="input-group">
+                <span class="icon">🔒</span>
+                <input type="password" id="register-pwd" placeholder="设置密码">
+                <span class="password-toggle" onclick="togglePassword('register-pwd', this)">👁️</span>
+            </div>
+            <button class="login-btn" onclick="register()">Register</button>
+            <div class="back-login">
+                Already have an account? <a href="javascript:switchTab('login')">Back to Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function () {
+            // 如果已登录且资料完整，直接进入首页
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (currentUser && currentUser.user_id) {
+                // 简单判断一下有没有昵称（nick），有就直接进首页
+                if (currentUser.nick && currentUser.nick.trim() !== '') {
+                    location.href = 'index.html';
+                } else {
+                    // 有登录但没有昵称，去编辑资料页
+                    location.href = 'user.html';
+                }
+            }
+        };
+
+        function switchTab(type) {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const message = document.getElementById('message');
+            if (type === 'login') {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+            }
+            message.className = 'message';
+        }
+
+        function showMessage(text, isSuccess) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = 'message ' + (isSuccess ? 'success' : 'error');
+        }
+
+        // 密码显示/隐藏切换函数
+        function togglePassword(inputId, iconElement) {
+            const passwordInput = document.getElementById(inputId);
+            // 切换输入框类型
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                iconElement.textContent = '🙈'; // 切换为闭眼图标
+            } else {
+                passwordInput.type = 'password';
+                iconElement.textContent = '👁️'; // 切换为睁眼图标
+            }
+        }
+
+        // 密码格式校验函数
+        function validatePassword(password) {
+            // 1. 校验长度 8-20位
+            if (password.length < 8 || password.length > 20) {
+                return {
+                    valid: false,
+                    message: '密码长度必须在8-20位之间'
+                };
+            }
+            // 2. 校验是否同时包含数字和字符（字母/符号）
+            const hasNumber = /\d/.test(password); // 包含数字
+            const hasChar = /[a-zA-Z\W]/.test(password); // 包含字母或特殊字符
+            if (!hasNumber || !hasChar) {
+                return {
+                    valid: false,
+                    message: '密码必须同时包含数字和字符（字母/符号）'
+                };
+            }
+            // 校验通过
+            return {
+                valid: true,
+                message: '密码格式正确'
+            };
+        }
+
+        // ====================== 登录 ======================
+        async function login() {
+            const username = document.getElementById('login-name').value.trim();
+            const password = document.getElementById('login-pwd').value.trim();
+
+            if (!username || !password) {
+                showMessage('用户名和密码不能为空', false);
+                return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:8081/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password })
+                });
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    showMessage(result.msg, true);
+
+                    // 先保存基础登录信息
+                    const basicInfo = {
+                        user_id: result.user_id,
+                        username: result.username,
+                        token: result.token
+                    };
+                    localStorage.setItem("currentUser", JSON.stringify(basicInfo));
+
+                    // 获取完整用户资料，判断是否完善
+                    try {
+                        const infoRes = await fetch(`http://localhost:8081/user/info?userId=${result.user_id}`);
+                        const infoData = await infoRes.json();
+                        if (infoData.code === 200 && infoData.data) {
+                            // 用完整信息覆盖 currentUser
+                            localStorage.setItem("currentUser", JSON.stringify(infoData.data));
+                            const u = infoData.data;
+
+                            // 判断必备字段是否齐全
+                            const requiredFields = ['nick', 'age', 'game_name', 'personality', 'playtime', 'matchneed', 'contact'];
+                            const incomplete = requiredFields.some(f => {
+                                const val = u[f];
+                                return !val || val === '' || val === 0;
+                            });
+
+                            if (incomplete) {
+                                localStorage.setItem('needCompleteProfile', 'true');
+                                setTimeout(() => { location.href = "user.html"; }, 1000);
+                            } else {
+                                localStorage.removeItem('needCompleteProfile');
+                                setTimeout(() => { location.href = "index.html"; }, 1000);
+                            }
+                        } else {
+                            // 获取资料失败，也引导去编辑
+                            localStorage.setItem('needCompleteProfile', 'true');
+                            setTimeout(() => { location.href = "user.html"; }, 1000);
+                        }
+                    } catch (e) {
+                        localStorage.setItem('needCompleteProfile', 'true');
+                        setTimeout(() => { location.href = "user.html"; }, 1000);
+                    }
+                } else {
+                    showMessage(result.msg, false);
+                }
+            } catch (err) {
+                showMessage('服务器连接失败', false);
+                console.error(err);
+            }
+        }
+
+        // ====================== 注册 ======================
+        async function register() {
+            const username = document.getElementById('register-name').value.trim();
+            const password = document.getElementById('register-pwd').value.trim();
+
+            // 基础非空校验
+            if (!username || !password) {
+                showMessage('用户名和密码不能为空', false);
+                return;
+            }
+
+            // 密码格式校验
+            const pwdCheck = validatePassword(password);
+            if (!pwdCheck.valid) {
+                showMessage(pwdCheck.message, false);
+                return; // 格式不通过，终止注册流程
+            }
+
+            try {
+                const response = await fetch("http://localhost:8081/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        contact: username
+                    })
+                });
+                const result = await response.json();
+                if (result.code === 200) {
+                    showMessage(result.msg, true);
+                    switchTab('login');
+                } else {
+                    showMessage(result.msg, false);
+                }
+            } catch (err) {
+                showMessage('注册失败：服务器连接失败', false);
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
