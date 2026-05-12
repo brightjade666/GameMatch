@@ -107,7 +107,7 @@ function updateNavUser() {
     if (isLoggedIn()) {
         let avatar = stored.avatar || "";
         if (avatar && !avatar.startsWith("http")) {
-            avatar = "http://localhost:8081" + avatar;
+            avatar = "http://172.27.7.51:8081" + avatar;
         }
         if (!avatar) avatar = "https://ui-avatars.com/api/?name=" + encodeURIComponent(stored.nick || stored.username || "用户");
         avatarElem.src = avatar;
@@ -126,10 +126,10 @@ function updateNavUser() {
 // 查看用户资料弹窗
 async function viewProfile(userId) {
     try {
-        const res = await fetch(`http://localhost:8081/user/publicInfo?userId=${userId}`);
+        const res = await fetch(`http://172.27.7.51:8081/user/publicInfo?userId=${userId}`);
         const data = await res.json();
         if (data.code === 200) {
-            document.getElementById('profileAvatar').src = data.avatar ? (data.avatar.startsWith('http') ? data.avatar : 'http://localhost:8081' + data.avatar) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(data.nick);
+            document.getElementById('profileAvatar').src = data.avatar ? (data.avatar.startsWith('http') ? data.avatar : 'http://172.27.7.51:8081' + data.avatar) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(data.nick);
             document.getElementById('profileName').innerText = data.nick;
             document.getElementById('profileGender').innerText = data.gender;
             document.getElementById('profileBio').innerText = data.introduction || '无';
@@ -151,7 +151,7 @@ window.closeProfile = function () {
 async function renderHome() {
     try {
         const user = JSON.parse(localStorage.getItem('currentUser')) || {};
-        let url = "http://localhost:8081/team/list";
+        let url = "http://172.27.7.51:8081/team/list";
         if (user.user_id) {
             url += `?userId=${user.user_id}`;
         }
@@ -160,7 +160,7 @@ async function renderHome() {
         const list = result.data || [];
         document.getElementById("home-list").innerHTML = list.map(t => `
             <div class="team-card" onclick="window.showDetail(${t.id})">
-                <div class="card-img"><img src="http://localhost:8081${t.avatar}"></div>
+                <div class="card-img"><img src="http://172.27.7.51:8081${t.avatar}"></div>
                 <div class="card-body">
                     <h3>${t.title}</h3>
                     <p><span class="btn-s" style="background:var(--danger)">队长</span> ${t.leader}</p>
@@ -179,12 +179,12 @@ window.showDetail = async function (id) {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     let joined = false;
     try {
-        const r = await fetch(`http://localhost:8081/team/my/joined?userId=${user.user_id}`);
+        const r = await fetch(`http://172.27.7.51:8081/team/my/joined?userId=${user.user_id}`);
         const d = await r.json();
         joined = (d.data || []).some(t => t.teamId == id);
     } catch (e) { }
 
-    const res = await fetch(`http://localhost:8081/team/detail/${id}`);
+    const res = await fetch(`http://172.27.7.51:8081/team/detail/${id}`);
     const result = await res.json();
     const t = result.data;
     if (!t) return showToast("队伍不存在", "error");
@@ -197,7 +197,7 @@ window.showDetail = async function (id) {
         const isMe = (c.userId == user.user_id);
         const cls = isMe ? 'self' : 'other';
         const avatarUrl = c.avatar && c.avatar.trim().length > 0
-            ? 'http://localhost:8081' + c.avatar
+            ? 'http://172.27.7.51:8081' + c.avatar
             : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.author);
         return `
         <div class="comment-item ${cls}">
@@ -215,7 +215,7 @@ window.showDetail = async function (id) {
     // 3. 详情弹窗内容（修改“需求”为“游戏”）
     document.getElementById('detail-content').innerHTML = `
         <div class="detail-split">
-            <img class="detail-cover" src="http://localhost:8081${t.avatar}">
+            <img class="detail-cover" src="http://172.27.7.51:8081${t.avatar}">
             <div class="detail-info">
                 <h2>${t.title}</h2>
                 <p><strong>队长：</strong>${t.leader}</p>
@@ -272,7 +272,7 @@ window.sendComment = async function (teamId) {
     if (!content) return;
 
     try {
-        const res = await fetch(`http://localhost:8081/team/comment?teamId=${teamId}&userId=${user.user_id}&content=${encodeURIComponent(content)}`, {
+        const res = await fetch(`http://172.27.7.51:8081/team/comment?teamId=${teamId}&userId=${user.user_id}&content=${encodeURIComponent(content)}`, {
             method: 'POST'
         });
         const result = await res.json();
@@ -280,7 +280,7 @@ window.sendComment = async function (teamId) {
             input.value = '';
             autoResizeTextarea(input);
             // 刷新评论列表（按正序渲染）
-            const detailRes = await fetch(`http://localhost:8081/team/detail/${teamId}`);
+            const detailRes = await fetch(`http://172.27.7.51:8081/team/detail/${teamId}`);
             const detail = await detailRes.json();
             if (detail.code === 200) {
                 const comments = (detail.data.comments || []).slice().reverse(); // 反转，最早在上
@@ -290,7 +290,7 @@ window.sendComment = async function (teamId) {
                         const isMe = (c.userId == user.user_id);
                         const cls = isMe ? 'self' : 'other';
                         const avatarUrl = c.avatar && c.avatar.trim().length > 0
-                            ? 'http://localhost:8081' + c.avatar
+                            ? 'http://172.27.7.51:8081' + c.avatar
                             : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.author);
                         return `
                         <div class="comment-item ${cls}">
@@ -320,7 +320,7 @@ window.applyJoinTeam = async function (teamId) {
     if (!requireLogin()) return;
     const user = JSON.parse(localStorage.getItem('currentUser'));
     try {
-        const r = await fetch(`http://localhost:8081/team/my/joined?userId=${user.user_id}`);
+        const r = await fetch(`http://172.27.7.51:8081/team/my/joined?userId=${user.user_id}`);
         const d = await r.json();
         if ((d.data || []).some(t => t.teamId == teamId)) {
             return showToast("你已加入该队伍", "error");
@@ -334,7 +334,7 @@ window.applyJoinTeam = async function (teamId) {
         btn.textContent = '申请中...';
     }
     try {
-        const res = await fetch("http://localhost:8081/team/apply", {
+        const res = await fetch("http://172.27.7.51:8081/team/apply", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ teamId, userId: user.user_id })
@@ -375,7 +375,7 @@ window.switchP = function (p) {
         if (isLoggedIn()) {
             userData = stored;
             let avatar = userData.avatar || "";
-            if (avatar && !avatar.startsWith("http")) avatar = "http://localhost:8081" + avatar;
+            if (avatar && !avatar.startsWith("http")) avatar = "http://172.27.7.51:8081" + avatar;
             if (!avatar) avatar = "https://ui-avatars.com/api/?name=" + encodeURIComponent(userData.nick || userData.username || "用户");
             document.getElementById('info-avatar').src = avatar;
             document.getElementById('info-nick').innerText = userData.nick || userData.username;
@@ -408,7 +408,7 @@ window.switchTab = async function (type) {
 
     if (type === 'teams') {
         try {
-            const res = await fetch(`http://localhost:8081/team/my/joined?userId=${user.user_id}`);
+            const res = await fetch(`http://172.27.7.51:8081/team/my/joined?userId=${user.user_id}`);
             const result = await res.json();
             const list = result.data || [];
             if (!list.length) { tab.innerHTML = "<p>你还没有加入任何队伍</p>"; return; }
@@ -438,14 +438,14 @@ window.switchTab = async function (type) {
         } catch (e) { tab.innerHTML = "<p>加载失败</p>"; }
     } else if (type === 'msgs') {
         try {
-            const notiRes = await fetch(`http://localhost:8081/notification/my?userId=${user.user_id}`);
+            const notiRes = await fetch(`http://172.27.7.51:8081/notification/my?userId=${user.user_id}`);
             const allNoti = (await notiRes.json()).data || [];
 
-            const applyRes = await fetch(`http://localhost:8081/team/my/applies?leaderId=${user.user_id}`);
+            const applyRes = await fetch(`http://172.27.7.51:8081/team/my/applies?leaderId=${user.user_id}`);
             let applyData = (await applyRes.json()).data || [];
             applyData.sort((a, b) => new Date(b.applyTime) - new Date(a.applyTime));
 
-            const friendApplyRes = await fetch(`http://localhost:8081/friend/applies/received?userId=${user.user_id}`);
+            const friendApplyRes = await fetch(`http://172.27.7.51:8081/friend/applies/received?userId=${user.user_id}`);
             const friendApplies = (await friendApplyRes.json()).data || [];
 
             const teamNoti = allNoti.filter(n => ['dissolve', 'leave', 'join', 'kick'].includes(n.type));
@@ -521,13 +521,13 @@ window.switchTab = async function (type) {
         } catch (e) { tab.innerHTML = "<p>加载失败</p>"; }
     } else if (type === 'friends') {
         try {
-            const res = await fetch(`http://localhost:8081/friend/list?userId=${user.user_id}`);
+            const res = await fetch(`http://172.27.7.51:8081/friend/list?userId=${user.user_id}`);
             const friends = (await res.json()).data || [];
             if (!friends.length) { tab.innerHTML = "<p>你还没有好友</p>"; return; }
             let html = '<div style="display:flex; flex-direction:column; gap:12px;">';
             friends.forEach(f => {
                 html += `<div style="display:flex; align-items:center; background:#fff; padding:12px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.05); gap:15px;">
-                <img src="${f.avatar ? 'http://localhost:8081' + f.avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(f.name)}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;">
+                <img src="${f.avatar ? 'http://172.27.7.51:8081' + f.avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(f.name)}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;">
                 <span style="font-weight:500; flex:1;">${f.name}</span>
                 <button class="btn-s" style="background:var(--primary);" onclick="viewProfile(${f.friendId})">查看资料</button>
                 <button class="btn-s" style="background:var(--danger);" onclick="deleteFriend(${f.friendId})">删除好友</button>
@@ -541,7 +541,7 @@ window.switchTab = async function (type) {
 
 // ----- 好友申请处理 -----
 async function handleFriendApply(applyId, action) {
-    const res = await fetch(`http://localhost:8081/friend/handle?applyId=${applyId}&action=${action}`, { method: 'POST' });
+    const res = await fetch(`http://172.27.7.51:8081/friend/handle?applyId=${applyId}&action=${action}`, { method: 'POST' });
     const r = await res.json();
     showToast(r.msg, 'success');
     switchTab('msgs');
@@ -552,7 +552,7 @@ async function deleteFriend(friendId) {
     if (!requireLogin()) return;
     const user = JSON.parse(localStorage.getItem('currentUser'));
     showConfirm('确定删除该好友吗？', async () => {
-        const res = await fetch(`http://localhost:8081/friend/delete?userId=${user.user_id}&friendId=${friendId}`, { method: 'DELETE' });
+        const res = await fetch(`http://172.27.7.51:8081/friend/delete?userId=${user.user_id}&friendId=${friendId}`, { method: 'DELETE' });
         const r = await res.json();
         showToast(r.msg, r.code === 200 ? 'success' : 'error');
         if (r.code === 200) switchTab('friends');
@@ -564,7 +564,7 @@ async function dissolveTeam(teamId) {
     if (!requireLogin()) return;
     const user = JSON.parse(localStorage.getItem('currentUser'));
     showConfirm('确定解散该队伍吗？', async () => {
-        const res = await fetch(`http://localhost:8081/team/dissolve?teamId=${teamId}&leaderId=${user.user_id}`, { method: 'POST' });
+        const res = await fetch(`http://172.27.7.51:8081/team/dissolve?teamId=${teamId}&leaderId=${user.user_id}`, { method: 'POST' });
         const r = await res.json();
         showToast(r.msg || '操作完成', r.code === 200 ? 'success' : 'error');
         if (r.code === 200) switchTab('teams');
@@ -574,20 +574,20 @@ async function leaveTeam(teamId) {
     if (!requireLogin()) return;
     const user = JSON.parse(localStorage.getItem('currentUser'));
     showConfirm('确定退出该队伍吗？', async () => {
-        const res = await fetch(`http://localhost:8081/team/leave?teamId=${teamId}&userId=${user.user_id}`, { method: 'POST' });
+        const res = await fetch(`http://172.27.7.51:8081/team/leave?teamId=${teamId}&userId=${user.user_id}`, { method: 'POST' });
         const r = await res.json();
         showToast(r.msg || '操作完成', r.code === 200 ? 'success' : 'error');
         if (r.code === 200) switchTab('teams');
     });
 }
 async function agreeApply(id) {
-    const res = await fetch(`http://localhost:8081/team/agree?id=${id}`, { method: 'POST' });
+    const res = await fetch(`http://172.27.7.51:8081/team/agree?id=${id}`, { method: 'POST' });
     const r = await res.json();
     showToast(r.msg || '已同意', 'success');
     switchTab('msgs');
 }
 async function rejectApply(id) {
-    const res = await fetch(`http://localhost:8081/team/reject?id=${id}`, { method: 'POST' });
+    const res = await fetch(`http://172.27.7.51:8081/team/reject?id=${id}`, { method: 'POST' });
     const r = await res.json();
     showToast(r.msg || '已拒绝', 'error');
     switchTab('msgs');
@@ -625,7 +625,7 @@ async function init() {
     let stored = JSON.parse(localStorage.getItem('currentUser')) || {};
     if (stored.user_id) {
         try {
-            const res = await fetch("http://localhost:8081/user/info?userId=" + stored.user_id);
+            const res = await fetch("http://172.27.7.51:8081/user/info?userId=" + stored.user_id);
             const result = await res.json();
             if (!result.data) {
                 localStorage.removeItem('currentUser');
