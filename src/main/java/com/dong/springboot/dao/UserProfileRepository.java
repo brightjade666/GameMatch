@@ -15,19 +15,17 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Intege
     // UserProfileRepository.java
     void deleteByUserId(Integer userId);
     // ✅ 修改后：只保留 SQL 中实际用到的参数
+    // UserProfileRepository.java
     @Query(value = "SELECT " +
             "u.user_id AS userId, " +
             "u.username, " +
             "u.avatar, " +
-            "u.gender, " +
-            "u.age, " +
             "g.game_name AS gameName, " +
             "up.game_rank AS gameRank, " +
             "up.play_time AS playTime, " +
             "up.personality, " +
             "up.team_requirement AS teamRequirement, " +
-            "up.win_rate AS winRate, " +
-            "90 AS matchScore " +
+            "up.win_rate AS winRate " +
             "FROM user_profile up " +
             "JOIN user u ON up.user_id = u.user_id " +
             "JOIN game g ON up.game_id = g.game_id " +
@@ -35,7 +33,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Intege
             "AND u.user_id != :excludeUserId " +
             "AND u.status = 1",
             nativeQuery = true)
-    List<Map<String, Object>> matchUsers(
+    List<Map<String, Object>> matchUsersWithDetails(
             @Param("gameId") Integer gameId,
             @Param("excludeUserId") Integer excludeUserId
     );

@@ -14,6 +14,9 @@ public class Game {
     @Column(name = "game_name")
     private String gameName;
 
+    // 新增 status 字段
+    private Integer status;
+
     public Integer getGameId() {
         return gameId;
     }
@@ -28,5 +31,13 @@ public class Game {
 
     public void setGameName(String gameName) {
         this.gameName = gameName;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }
