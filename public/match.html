@@ -418,7 +418,6 @@
             <div class="filter-group">
                 <label>常玩游戏</label>
                 <select id="matchGame" class="form-control" onchange="handleMatchOtherGame(this.value)">
-                    <option value="">不限</option>
                     <option value="王者荣耀">王者荣耀</option>
                     <option value="英雄联盟">英雄联盟</option>
                     <option value="和平精英">和平精英</option>
@@ -530,80 +529,87 @@
         const progressModal = document.getElementById('progressModal');
 
         startMatchBtn.addEventListener('click', async () => {
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            if (!currentUser || !currentUser.user_id) {
-                showToast('请先登录', 'error');
-                return;
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser || !currentUser.user_id) {
+        showToast('请先登录', 'error');
+        return;
+    }
+    
+    // ========== 新增：校验游戏名称 ==========
+    const game = getMatchGameName();
+    if (!game) {
+        showToast('请选择游戏或输入自定义游戏名', 'error');
+        return;
+    }
+    // =====================================
+
+    const timeStart = document.getElementById('timeStart').value;
+    const timeEnd = document.getElementById('timeEnd').value;
+    const need = document.getElementById('matchNeed').value;
+    const personality = document.getElementById('matchPersonality').value;
+
+    progressModal.style.display = 'flex';
+    resultContainer.innerHTML = '<h3>✨ 匹配结果</h3><div class="empty-state">匹配中...</div>';
+
+    try {
+        const params = new URLSearchParams();
+        if (game) params.append('gameName', game);
+        if (timeStart) params.append('playtimeStart', timeStart);
+        if (timeEnd) params.append('playtimeEnd', timeEnd);
+        if (need) params.append('matchNeed', need);
+        if (personality) params.append('personality', personality);
+        params.append('excludeUserId', currentUser.user_id);
+
+        const res = await fetch(`http://localhost:8081/user/matchAdvanced?${params.toString()}`);
+        const result = await res.json();
+
+        const friendIdSet = await fetchFriendIdSet();
+        let filteredUsers = [];
+        if (result.code === 200 && result.data && result.data.length > 0) {
+            filteredUsers = result.data.filter(u => !friendIdSet.has(Number(u.userId)));
+        }
+
+        setTimeout(() => {
+            progressModal.style.display = 'none';
+            if (filteredUsers.length > 0) {
+                renderMatchResults(filteredUsers);
+            } else {
+                resultContainer.innerHTML = '<h3>✨ 匹配结果</h3><div class="empty-state">😔 没有找到合适的队友（已过滤好友），试试调整条件吧</div>';
             }
-            const game = getMatchGameName();
-            const timeStart = document.getElementById('timeStart').value;
-            const timeEnd = document.getElementById('timeEnd').value;
-            const need = document.getElementById('matchNeed').value;
-            const personality = document.getElementById('matchPersonality').value;
-
-            progressModal.style.display = 'flex';
-            resultContainer.innerHTML = '<h3>✨ 匹配结果</h3><div class="empty-state">匹配中...</div>';
-
-            try {
-                const params = new URLSearchParams();
-                if (game) params.append('gameName', game);
-                if (timeStart) params.append('playtimeStart', timeStart);
-                if (timeEnd) params.append('playtimeEnd', timeEnd);
-                if (need) params.append('matchNeed', need);
-                if (personality) params.append('personality', personality);
-                params.append('excludeUserId', currentUser.user_id);
-
-                const res = await fetch(`http://localhost:8081/user/matchAdvanced?${params.toString()}`);
-                const result = await res.json();
-
-                // 获取好友ID集合并过滤
-                const friendIdSet = await fetchFriendIdSet();
-                let filteredUsers = [];
-                if (result.code === 200 && result.data && result.data.length > 0) {
-                    filteredUsers = result.data.filter(u => !friendIdSet.has(Number(u.userId)));
-                }
-
-                setTimeout(() => {
-                    progressModal.style.display = 'none';
-                    if (filteredUsers.length > 0) {
-                        renderMatchResults(filteredUsers);
-                    } else {
-                        resultContainer.innerHTML = '<h3>✨ 匹配结果</h3><div class="empty-state">😔 没有找到合适的队友（已过滤好友），试试调整条件吧</div>';
-                    }
-                }, 1600);
-            } catch (err) {
-                setTimeout(() => {
-                    progressModal.style.display = 'none';
-                    resultContainer.innerHTML = '<h3>✨ 匹配结果</h3><div class="empty-state">❌ 匹配失败，请检查网络或后端</div>';
-                }, 1600);
-                console.error(err);
-            }
-        });
+        }, 1600);
+    } catch (err) {
+        setTimeout(() => {
+            progressModal.style.display = 'none';
+            resultContainer.innerHTML = '<h3>✨ 匹配结果</h3><div class="empty-state">❌ 匹配失败，请检查网络或后端</div>';
+        }, 1600);
+        console.error(err);
+    }
+});
 
         function renderMatchResults(users) {
-            let html = '<h3>✨ 匹配结果</h3>';
-            users.forEach(u => {
-                const score = u.matchScore || 75;
-                const avatar = u.avatar ? (u.avatar.startsWith('http') ? u.avatar : 'http://localhost:8081' + u.avatar) : 'https://ui-avatars.com/api/?name=User';
-                html += `
-                        <div class="match-card">
-                            <img class="match-avatar" src="${avatar}" onerror="this.src='https://ui-avatars.com/api/?name=User'">
-                            <div class="match-info">
-                                <div class="nick">${u.nick || '用户'}</div>
-                                <span class="game">${u.gameName || '未知游戏'}</span>
-                                <span class="time-badge">${u.playtime || ''}</span>
-                            </div>
-                            <div class="match-score">
-                                <div class="score-circle" style="--p:${score};">
-                                    <span class="score-value">${score}%</span>
-                                </div>
-                                <span style="font-size:11px;color:#888;">匹配度</span>
-                            </div>
-                            <button class="friend-btn" onclick="showApplyDialog(${u.userId}, '${u.nick || '用户'}')">➕ 好友申请</button>
-                        </div>`;
-            });
-            resultContainer.innerHTML = html;
-        }
+    let html = '<h3>✨ 匹配结果</h3>';
+    users.forEach(u => {
+        const score = u.matchScore || 75;
+        const avatar = u.avatar ? (u.avatar.startsWith('http') ? u.avatar : 'http://localhost:8081' + u.avatar) : 'https://ui-avatars.com/api/?name=User';
+        html += `
+            <div class="match-card">
+                <img class="match-avatar" src="${avatar}" onerror="this.src='https://ui-avatars.com/api/?name=User'">
+                <div class="match-info">
+                    <div class="nick">${u.username || '用户'}</div>
+                    <span class="game">${u.gameName || '未知游戏'}</span>
+                    <span class="time-badge">${u.playtime || ''}</span>
+                </div>
+                <div class="match-score">
+                    <div class="score-circle" style="--p:${score};">
+                        <span class="score-value">${score}%</span>
+                    </div>
+                    <span style="font-size:11px;color:#888;">匹配度</span>
+                </div>
+                <button class="friend-btn" onclick="showApplyDialog(${u.userId}, '${u.username || '用户'}')">➕ 好友申请</button>
+            </div>`;
+    });
+    resultContainer.innerHTML = html;
+}
 
         let pendingToUserId = null;
         function showApplyDialog(toUserId, nick) {
