@@ -66,11 +66,12 @@ public class UserInfoService {
     }
     @Transactional
 
+
     public void updateUserInfo(UserInfoVO vo) {
         User user = userRepository.findById(vo.getUser_id()).orElse(null);
         if (user == null) return;
 
-        // ========== 1. 处理头像（不存Base64） ==========
+        // ========== 1. 处理头像 ==========
         String avatar = vo.getAvatar();
         if (avatar != null && avatar.startsWith("data:image")) {
             avatar = null;
@@ -82,45 +83,48 @@ public class UserInfoService {
         user.setAge(vo.getAge());
         user.setContact(vo.getContact());
         user.setIntroduction(vo.getIntroduction());
+        user.setGameRank(vo.getGame_rank());  // ✅ 添加：保存段位到 user 表
 
-        // ======================================================
-        // ========== 【核心】根据游戏名 game_name 查 game_id ==========
-        // ======================================================
+        // ========== 3. 处理游戏 ==========
         String gameName = vo.getGame_name();
         Integer gameId = null;
 
         if (gameName != null && !gameName.isBlank()) {
-            // 根据游戏名查游戏
             Game game = gameRepository.findByGameName(gameName);
-
-            // 如果不存在，自动创建（可选）
             if (game == null) {
                 game = new Game();
                 game.setGameName(gameName);
                 game = gameRepository.save(game);
             }
-
             gameId = game.getGameId();
-            user.setGameId(gameId); // 同时更新 user 表的 game_id
+            user.setGameId(gameId);
         }
 
         userRepository.save(user);
 
-        // ========== 3. 保存到 user_profile ==========
+        // ========== 4. 保存到 user_profile ==========
         UserProfile profile = userProfileRepository.findByUserId(vo.getUser_id());
         if (profile == null) {
             profile = new UserProfile();
             profile.setUserId(vo.getUser_id());
+            profile.setCreatedAt(LocalDateTime.now());  // ✅ 添加创建时间
         }
 
-        // 把查到的 gameId 存入 profile !!!
         if (gameId != null) {
             profile.setGameId(gameId);
+        }
+
+        // ✅ 关键修复：设置 game_rank
+        if (vo.getGame_rank() != null && !vo.getGame_rank().isBlank()) {
+            profile.setGameRank(vo.getGame_rank());
+        } else {
+            profile.setGameRank("未知");  // 或者设置默认值
         }
 
         profile.setPersonality(vo.getPersonality());
         profile.setPlayTime(vo.getPlaytime());
         profile.setTeamRequirement(vo.getMatchneed());
+        profile.setUpdatedAt(LocalDateTime.now());  // ✅ 添加更新时间
 
         userProfileRepository.save(profile);
     }

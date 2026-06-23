@@ -3,13 +3,13 @@ server:
 
 spring:
   datasource:
-    # 已改回 sprintpro_db，并且加上了修复权限的参数
-    url: jdbc:mysql://localhost:3306/game_team_match?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    # 已改回 sprintpro_db + 权限修复参数
+    url: jdbc:mysql://localhost:3306/sprintpro_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
     username: root
-    password: "@XDY061210"
+    password: 200618665
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-  # ===================== JPA 配置 =====================
+  # JPA 配置（自动解决方言报错）
   jpa:
     hibernate:
       ddl-auto: update
@@ -17,6 +17,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect  # 关键：强制指定方言，彻底修复你的错误
 
 logging:
   level:
