@@ -219,8 +219,8 @@
             <input type="text" id="team-need-other" class="form-control" style="display:none; margin-top:10px;" placeholder="请输入游戏名称">
         </div>
         <div class="form-group">
-            <label>简介</label>
-            <textarea id="team-desc" class="form-control" placeholder="详细介绍一下你的队伍吧，吸引更多伙伴..."></textarea>
+            <label>项目简介</label>
+            <textarea id="team-desc" class="form-control" placeholder="详细介绍一下你的项目和目标，吸引更多伙伴..."></textarea>
         </div>
 
         <button class="btn-submit" onclick="doPublish()">立 即 发 布</button>
@@ -263,11 +263,11 @@
             let formData = new FormData();
             formData.append("file", file);
             try {
-                let res = await fetch("http://172.27.7.51:8081/file/upload", { method: "POST", body: formData });
+                let res = await fetch("http://localhost:8081/file/upload", { method: "POST", body: formData });
                 let path = await res.text();
                 coverPath = path;
                 let img = document.getElementById("team-cover-pre");
-                img.src = "http://172.27.7.51:8081" + coverPath;
+                img.src = "http://localhost:8081" + coverPath;
                 img.style.display = "block";
                 document.getElementById("cover-plus-icon").style.display = "none";
                 document.getElementById("cover-text").style.display = "none";
@@ -324,7 +324,7 @@
             };
 
             try {
-                let res = await fetch("http://172.27.7.51:8081/team/publish", {
+                let res = await fetch("http://localhost:8081/team/publish", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(postData)

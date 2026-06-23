@@ -510,7 +510,7 @@
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             if (!currentUser) return friendIds;
             try {
-                const res = await fetch(`http://172.27.7.51:8081/friend/list?userId=${currentUser.user_id}`);
+                const res = await fetch(`http://localhost:8081/friend/list?userId=${currentUser.user_id}`);
                 const data = await res.json();
                 if (data.code === 200 && data.data && Array.isArray(data.data)) {
                     data.data.forEach(f => {
@@ -560,7 +560,7 @@
         if (personality) params.append('personality', personality);
         params.append('excludeUserId', currentUser.user_id);
 
-        const res = await fetch(`http://172.27.7.51:8081/user/matchAdvanced?${params.toString()}`);
+        const res = await fetch(`http://localhost:8081/user/matchAdvanced?${params.toString()}`);
         const result = await res.json();
 
         const friendIdSet = await fetchFriendIdSet();
@@ -590,7 +590,7 @@
     let html = '<h3>✨ 匹配结果</h3>';
     users.forEach(u => {
         const score = u.matchScore || 75;
-        const avatar = u.avatar ? (u.avatar.startsWith('http') ? u.avatar : 'http://172.27.7.51:8081' + u.avatar) : 'https://ui-avatars.com/api/?name=User';
+        const avatar = u.avatar ? (u.avatar.startsWith('http') ? u.avatar : 'http://localhost:8081' + u.avatar) : 'https://ui-avatars.com/api/?name=User';
         html += `
             <div class="match-card">
                 <img class="match-avatar" src="${avatar}" onerror="this.src='https://ui-avatars.com/api/?name=User'">
@@ -646,7 +646,7 @@
             document.getElementById('applyModal').classList.remove('show');
             if (!pendingToUserId) return;
             try {
-                const res = await fetch(`http://172.27.7.51:8081/friend/apply?fromUserId=${currentUser.user_id}&toUserId=${pendingToUserId}&reason=${encodeURIComponent(reason)}`, { method: 'POST' });
+                const res = await fetch(`http://localhost:8081/friend/apply?fromUserId=${currentUser.user_id}&toUserId=${pendingToUserId}&reason=${encodeURIComponent(reason)}`, { method: 'POST' });
                 const result = await res.json();
                 if (result.code === 200) showToast('申请已发送', 'success');
                 else showToast(result.msg || '申请失败', 'error');
