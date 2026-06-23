@@ -1,108 +1,108 @@
-# GameMatch
+# GameMatch 项目总览
 
-GameMatch is a game-oriented social matching project with separate frontend and backend branches.
+GameMatch 是一个面向游戏社交与组队匹配场景的前后端分离项目。
 
-This `main` branch is the repository entry point. It does not contain the implementation code directly.  
-Use the dedicated branches below for development and runtime.
+`main` 分支用于放置项目说明和仓库导航信息，不直接承载前后端实现代码。  
+实际开发与运行请进入对应业务分支。
 
-## Branches
+## 分支说明
 
-| Branch | Purpose | Stack |
+| 分支 | 用途 | 技术栈 |
 | --- | --- | --- |
-| `main` | Project overview and onboarding | Markdown |
-| `dev` | Backend service | Spring Boot, JPA, MySQL, Java 17 |
-| `front-end` | Frontend web application | Express, Pug, Node.js |
+| `main` | 项目总览、使用说明、仓库入口 | Markdown |
+| `dev` | 后端服务 | Spring Boot、JPA、MySQL、Java 17 |
+| `front-end` | 前端应用 | Express、Pug、Node.js |
 
-## Project Scope
+## 项目功能
 
-Main business capabilities:
+当前项目主要包含以下功能：
 
-- User registration and login
-- User profile and public information
-- Team recruitment and team management
-- Friend application and friend list management
-- Team chat and private chat
-- Notification management
-- Admin-side management
-- AI chat support
-- File upload
+- 用户注册与登录
+- 用户资料与公开信息展示
+- 战队招募与战队管理
+- 好友申请与好友列表管理
+- 私聊与战队聊天
+- 通知管理
+- 管理员端管理能力
+- AI 聊天能力
+- 文件上传
 
-## Run The Backend
+## 后端运行方式
 
-Switch to the backend branch:
+切换到后端分支：
 
 ```bash
 git checkout dev
 ```
 
-Backend default port:
+后端默认端口：
 
 ```text
 8081
 ```
 
-Backend local run:
+本地启动命令：
 
 ```powershell
 .\mvnw.cmd compile
 .\mvnw.cmd spring-boot:run
 ```
 
-Backend runtime depends on:
+后端运行依赖：
 
 - Java 17
 - MySQL
-- Local database `sprintpro_db`
+- 本地数据库 `sprintpro_db`
 
-Current backend datasource defaults:
+当前后端数据库默认配置：
 
 ```text
 jdbc:mysql://localhost:3306/sprintpro_db
 username: root
 ```
 
-## Run The Frontend
+## 前端运行方式
 
-Switch to the frontend branch:
+切换到前端分支：
 
 ```bash
 git checkout front-end
 ```
 
-Frontend default port:
+前端默认端口：
 
 ```text
 3000
 ```
 
-Frontend local run:
+本地启动命令：
 
 ```bash
 npm install
 npm start
 ```
 
-Frontend stack summary:
+前端主要技术：
 
 - Express 4
 - Pug
 - Morgan
 - Cookie Parser
 
-## Recommended Local Workflow
+## 本地联调建议
 
-1. Start backend from `dev`.
-2. Start frontend from `front-end`.
-3. Open `http://localhost:3000`.
-4. Let frontend call backend on `http://localhost:8081`.
+1. 先在 `dev` 分支启动后端服务。
+2. 再在 `front-end` 分支启动前端服务。
+3. 浏览器访问 `http://localhost:3000`。
+4. 前端对接后端地址 `http://localhost:8081`。
 
-## Current Repository Status
+## 当前仓库状态
 
-- `dev` has been updated to the backend project source.
-- `front-end` has been updated to the frontend project source.
-- `main` is reserved for documentation and project navigation.
+- `dev` 分支已放置后端项目代码
+- `front-end` 分支已放置前端项目代码
+- `main` 分支仅保留项目说明与仓库导航
 
-## Notes
+## 说明
 
-- Do not place frontend and backend implementation together on `main`.
-- Keep feature development in `dev` and `front-end`.
+- 不建议把前后端代码直接混放在 `main` 分支
+- 日常功能开发请在 `dev` 和 `front-end` 分支中进行
