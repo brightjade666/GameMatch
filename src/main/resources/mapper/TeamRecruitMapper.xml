@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dong.springboot.mapper.TeamRecruitMapper">
+
+    <resultMap id="CommentVOMap" type="com.dong.springboot.vo.CommentVO">
+        <result property="author" column="author"/>
+        <result property="text" column="text"/>
+        <result property="time" column="time"/>
+        <result property="userId" column="user_id"/>
+        <result property="avatar" column="avatar"/>
+    </resultMap>
+
+    <resultMap id="TeamDetailVOMap" type="com.dong.springboot.vo.TeamDetailVO">
+        <result property="id" column="team_id"/>
+        <result property="title" column="team_name"/>
+        <result property="avatar" column="team_cover"/>
+        <result property="leader" column="leader_name"/>
+        <result property="need" column="team_need"/>
+        <result property="leaderId" column="leader_id"/>
+        <result property="desc" column="team_desc"/>
+        <result property="status" column="status"/>
+        <collection property="comments" ofType="com.dong.springboot.vo.CommentVO" resultMap="CommentVOMap"/>
+    </resultMap>
+
+    <select id="selectTeamDetailById" resultMap="TeamDetailVOMap">
+        SELECT
+            t.team_id,
+            t.team_name,
+            t.team_cover,
+            t.team_need,
+            t.team_desc,
+            t.leader_id,
+            t.status,
+            u.username AS leader_name,
+            c.user_id,
+            cu.username AS author,
+            c.content AS text,
+            DATE_FORMAT(c.create_time, '%m-%d %H:%i') AS time,
+            cu.avatar
+        FROM team_recruit t
+        LEFT JOIN user u ON u.user_id = t.leader_id
+        LEFT JOIN team_comment c ON c.team_id = t.team_id
+        LEFT JOIN user cu ON cu.user_id = c.user_id
+        WHERE t.team_id = #{teamId}
+        ORDER BY c.create_time DESC
+    </select>
+
+</mapper>

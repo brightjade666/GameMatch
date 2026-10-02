@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dong.springboot.mapper.UserProfileMapper">
+
+    <resultMap id="UserInfoVOMap" type="com.dong.springboot.vo.UserInfoVO">
+        <result property="user_id" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="nick" column="username"/>
+        <result property="avatar" column="avatar"/>
+        <result property="gender" column="gender"/>
+        <result property="age" column="age"/>
+        <result property="contact" column="contact"/>
+        <result property="game_name" column="game_name"/>
+        <result property="game_rank" column="game_rank"/>
+        <result property="personality" column="personality"/>
+        <result property="playtime" column="play_time"/>
+        <result property="matchneed" column="team_requirement"/>
+        <result property="introduction" column="introduction"/>
+        <result property="create_time" column="create_time"/>
+        <result property="update_time" column="update_time"/>
+    </resultMap>
+
+    <select id="selectUserInfoById" resultMap="UserInfoVOMap">
+        SELECT
+            u.user_id,
+            u.username,
+            u.avatar,
+            u.gender,
+            u.age,
+            u.contact,
+            u.introduction,
+            COALESCE(g.game_name, '') AS game_name,
+            COALESCE(u.game_rank, '') AS game_rank,
+            COALESCE(up.personality, '') AS personality,
+            COALESCE(up.play_time, '') AS play_time,
+            COALESCE(up.team_requirement, '') AS team_requirement,
+            DATE_FORMAT(u.create_time, '%Y-%m-%d %H:%i:%s') AS create_time,
+            DATE_FORMAT(u.update_time, '%Y-%m-%d %H:%i:%s') AS update_time
+        FROM user u
+        LEFT JOIN user_profile up ON up.user_id = u.user_id
+        LEFT JOIN game g ON g.game_id = COALESCE(u.game_id, up.game_id)
+        WHERE u.user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <select id="matchUsersWithDetails" resultType="java.util.HashMap">
+        SELECT
+            u.user_id AS userId,
+            u.username,
+            u.avatar,
+            g.game_name AS gameName,
+            up.game_rank AS gameRank,
+            up.play_time AS playTime,
+            up.personality,
+            up.team_requirement AS teamRequirement,
+            up.win_rate AS winRate
+        FROM user_profile up
+        JOIN user u ON up.user_id = u.user_id
+        JOIN game g ON up.game_id = g.game_id
+        WHERE up.game_id = #{gameId}
+          AND u.user_id != #{excludeUserId}
+          AND u.status = 1
+    </select>
+
+</mapper>

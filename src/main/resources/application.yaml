@@ -1,0 +1,28 @@
+server:
+  servlet:
+    context-path: /
+  tomcat:
+    uri-encoding: UTF-8
+    accept-count: 1000
+    threads:
+      max: 800
+      min-spare: 100
+spring:
+  profiles:
+    active: dev
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:change-this-development-jwt-secret-before-production}
+    access-ttl: ${JWT_ACCESS_TTL:30m}
+    refresh-ttl: ${JWT_REFRESH_TTL:7d}
+    issuer: ${JWT_ISSUER:gamematch}
+
+doubao:
+  api-key: ${DOUBAO_API_KEY:}
+  endpoint-id: ${DOUBAO_ENDPOINT_ID:}
+  url: ${DOUBAO_API_URL:https://ark.cn-beijing.volces.com/api/v3/chat/completions}
