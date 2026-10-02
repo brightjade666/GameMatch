@@ -12,10 +12,10 @@ public class TeamVO {
     private Integer leaderId;
     private LocalDateTime joinTime;
     private List<TeamMember> members;
-    // 新增字段：成员详细信息（包含昵称和加入时间）
+    // 鏂板瀛楁锛氭垚鍛樿缁嗕俊鎭紙鍖呭惈鏄电О鍜屽姞鍏ユ椂闂达級
     private List<Map<String, Object>> memberDetails;
 
-    // === 在 TeamVO 类中添加以下代码 ===
+    // === 鍦?TeamVO 绫讳腑娣诲姞浠ヤ笅浠ｇ爜 ===
     private String teamCover;
 
     public String getTeamCover() {

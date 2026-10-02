@@ -1,69 +1,66 @@
 package com.dong.springboot.service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import org.springframework.stereotype.Service;
-
-import com.dong.springboot.dao.FriendRepository;
-import com.dong.springboot.dao.PrivateMessageRepository;
-import com.dong.springboot.dao.TeamMemberRepository;
-import com.dong.springboot.dao.TeamMessageRepository;
-import com.dong.springboot.dao.TeamRecruitRepository;
-import com.dong.springboot.entity.Friend;
 import com.dong.springboot.entity.PrivateMessage;
 import com.dong.springboot.entity.TeamMember;
 import com.dong.springboot.entity.TeamMessage;
 import com.dong.springboot.entity.TeamRecruit;
+import com.dong.springboot.mapper.FriendMapper;
+import com.dong.springboot.mapper.PrivateMessageMapper;
+import com.dong.springboot.mapper.TeamMemberMapper;
+import com.dong.springboot.mapper.TeamMessageMapper;
+import com.dong.springboot.mapper.TeamRecruitMapper;
 import com.dong.springboot.vo.ChatSessionVO;
 import com.dong.springboot.vo.UserInfoVO;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ChatService {
 
-    private final TeamMemberRepository teamMemberRepo;
-    private final TeamRecruitRepository teamRecruitRepo;
-    private final TeamMessageRepository teamMsgRepo;
-    private final FriendRepository friendRepo;
-    private final PrivateMessageRepository privateMsgRepo;
+    private final TeamMemberMapper teamMemberRepo;
+    private final TeamRecruitMapper teamRecruitRepo;
+    private final TeamMessageMapper teamMsgRepo;
+    private final FriendMapper friendRepo;
+    private final PrivateMessageMapper privateMsgRepo;
     private final UserInfoService userInfoService;
+    private final UnreadCountService unreadCountService;
 
-    public ChatService(TeamMemberRepository teamMemberRepo,
-                       TeamRecruitRepository teamRecruitRepo,
-                       TeamMessageRepository teamMsgRepo,
-                       FriendRepository friendRepo,
-                       PrivateMessageRepository privateMsgRepo,
-                       UserInfoService userInfoService) {
+    public ChatService(TeamMemberMapper teamMemberRepo,
+                       TeamRecruitMapper teamRecruitRepo,
+                       TeamMessageMapper teamMsgRepo,
+                       FriendMapper friendRepo,
+                       PrivateMessageMapper privateMsgRepo,
+                       UserInfoService userInfoService,
+                       UnreadCountService unreadCountService) {
         this.teamMemberRepo = teamMemberRepo;
         this.teamRecruitRepo = teamRecruitRepo;
         this.teamMsgRepo = teamMsgRepo;
         this.friendRepo = friendRepo;
         this.privateMsgRepo = privateMsgRepo;
         this.userInfoService = userInfoService;
+        this.unreadCountService = unreadCountService;
     }
-
-    // ================================
-    // 队伍聊天（已修复 leaderId → ownerId）
-    // ================================
 
     public List<ChatSessionVO> getTeamChatList(Integer userId) {
         List<TeamMember> myJoinTeamList = teamMemberRepo.findByUserId(userId);
         List<ChatSessionVO> resultList = new ArrayList<>();
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM-dd HH:mm");
 
         for (TeamMember teamMember : myJoinTeamList) {
             Integer teamId = teamMember.getTeamId();
             Optional<TeamRecruit> teamOpt = teamRecruitRepo.findById(teamId);
-            if (teamOpt.isEmpty()) continue;
+            if (teamOpt.isEmpty()) {
+                continue;
+            }
 
             TeamRecruit team = teamOpt.get();
-            if (team.getStatus() != 1) continue;
+            if (team.getStatus() != 1) {
+                continue;
+            }
 
             ChatSessionVO vo = new ChatSessionVO();
             vo.setOwnerId(team.getLeaderId());
@@ -76,9 +73,9 @@ public class ChatService {
             if (!msgList.isEmpty()) {
                 TeamMessage lastMsg = msgList.get(0);
                 vo.setLastMsg(lastMsg.getContent());
-                vo.setLastTime(lastMsg.getSendTime().format(fmt));
+                vo.setLastTime(lastMsg.getSendTime().toString());
             } else {
-                vo.setLastMsg("暂无聊天记录");
+                vo.setLastMsg("暂无消息");
                 vo.setLastTime("");
             }
             resultList.add(vo);
@@ -89,20 +86,23 @@ public class ChatService {
     public List<UserInfoVO> getTeamMemberList(Integer teamId) {
         List<TeamMember> members = teamMemberRepo.findByTeamId(teamId);
         List<UserInfoVO> result = new ArrayList<>();
-        for (TeamMember tm : members) {
-            UserInfoVO user = userInfoService.getUserInfo(tm.getUserId());
-            if (user != null) result.add(user);
+        for (TeamMember member : members) {
+            UserInfoVO user = userInfoService.getUserInfo(member.getUserId());
+            if (user != null) {
+                result.add(user);
+            }
         }
         return result;
     }
 
     public void addTeamMember(Integer teamId, Integer userId) {
         List<TeamMember> exists = teamMemberRepo.findByTeamId(teamId);
-        for (TeamMember m : exists) {
-            if (m.getUserId().equals(userId)) {
-                throw new RuntimeException("已在队伍中");
+        for (TeamMember member : exists) {
+            if (member.getUserId().equals(userId)) {
+                throw new RuntimeException("该用户已经在队伍中");
             }
         }
+
         TeamMember member = new TeamMember();
         member.setTeamId(teamId);
         member.setUserId(userId);
@@ -110,9 +110,6 @@ public class ChatService {
         teamMemberRepo.save(member);
     }
 
-    // ======================
-    // ✅ 修改这里：支持图片/视频
-    // ======================
     public TeamMessage sendTeamMessage(Integer teamId, Integer fromId, String content, String fileUrl, String msgType) {
         TeamMessage msg = new TeamMessage();
         msg.setTeamId(teamId);
@@ -126,8 +123,6 @@ public class ChatService {
 
     public List<TeamMessage> getTeamMessageHistory(Integer teamId) {
         List<TeamMessage> list = teamMsgRepo.findByTeamIdOrderBySendTimeAsc(teamId);
-
-        // 填充用户名、头像
         for (TeamMessage msg : list) {
             UserInfoVO user = userInfoService.getUserInfo(msg.getFromId());
             if (user != null) {
@@ -135,59 +130,27 @@ public class ChatService {
                 msg.setAvatar(user.getAvatar());
             }
         }
-
         return list;
     }
 
-    // ================================
-    // 私聊功能
-    // ================================
-
     public List<ChatSessionVO> getMyPrivateChatList(Integer userId) {
-        List<Friend> list1 = friendRepo.findByUserId(userId);
-        List<Friend> list2 = friendRepo.findByFriendId(userId);
-
-        Set<Integer> friendIds = new HashSet<>();
-        for (Friend f : list1) if (f.getStatus() == 1) friendIds.add(f.getFriendId());
-        for (Friend f : list2) if (f.getStatus() == 1) friendIds.add(f.getUserId());
-
-        List<ChatSessionVO> result = new ArrayList<>();
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM-dd HH:mm");
-
-        for (Integer toUserId : friendIds) {
-            UserInfoVO user = userInfoService.getUserInfo(toUserId);
-            if (user == null) continue;
-
-            ChatSessionVO vo = new ChatSessionVO();
-            vo.setSessionId(toUserId);
-            vo.setSessionType("private");
-            vo.setName(user.getUsername());
-            vo.setAvatar(user.getAvatar());
-
-            List<PrivateMessage> allMsg = getPrivateMessageHistory(userId, toUserId);
-            if (!allMsg.isEmpty()) {
-                PrivateMessage last = allMsg.get(allMsg.size() - 1);
-                vo.setLastMsg(last.getContent());
-                vo.setLastTime(last.getSendTime().format(fmt));
-            } else {
-                vo.setLastMsg("暂无消息");
-            }
-            result.add(vo);
-        }
-        return result;
+        return friendRepo.selectPrivateChatSessions(userId);
     }
 
     public List<UserInfoVO> getPrivateChatMemberList(Integer userId) {
         List<UserInfoVO> list = new ArrayList<>();
         UserInfoVO user = userInfoService.getUserInfo(userId);
-        if (user != null) list.add(user);
+        if (user != null) {
+            list.add(user);
+        }
         return list;
     }
 
-    // ======================
-    // ✅ 修改这里：支持图片/视频
-    // ======================
-    public PrivateMessage sendPrivateMessage(Integer fromId, Integer toUserId, String content, String fileUrl, String msgType) {
+    public PrivateMessage sendPrivateMessage(Integer fromId,
+                                             Integer toUserId,
+                                             String content,
+                                             String fileUrl,
+                                             String msgType) {
         PrivateMessage msg = new PrivateMessage();
         msg.setFromId(fromId);
         msg.setToId(toUserId);
@@ -196,7 +159,9 @@ public class ChatService {
         msg.setFileUrl(fileUrl);
         msg.setSendTime(LocalDateTime.now());
         msg.setIsRead(0);
-        return privateMsgRepo.save(msg);
+        PrivateMessage saved = privateMsgRepo.save(msg);
+        unreadCountService.incrementPrivate(toUserId);
+        return saved;
     }
 
     public List<PrivateMessage> getPrivateMessageHistory(Integer userId1, Integer userId2) {
@@ -208,7 +173,6 @@ public class ChatService {
         all.addAll(b);
         all.sort(Comparator.comparing(PrivateMessage::getSendTime));
 
-        // 填充用户名、头像
         for (PrivateMessage msg : all) {
             UserInfoVO user = userInfoService.getUserInfo(msg.getFromId());
             if (user != null) {
@@ -216,7 +180,10 @@ public class ChatService {
                 msg.setAvatar(user.getAvatar());
             }
         }
-
         return all;
+    }
+
+    public Long countUnreadPrivateMessages(Integer userId) {
+        return unreadCountService.getPrivateCount(userId);
     }
 }

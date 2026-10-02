@@ -11,9 +11,9 @@ public class TeamDetailVO {
     private Integer leaderId;
     private String desc;
     private List<CommentVO> comments;
-    private Integer status;   // ← 添加这个字段
+    private Integer status;   // 鈫?娣诲姞杩欎釜瀛楁
 
-    // ========== 原有的 getter/setter 保持不变 ==========
+    // ========== 鍘熸湁鐨?getter/setter 淇濇寔涓嶅彉 ==========
     public Integer getLeaderId() { return leaderId; }
     public void setLeaderId(Integer leaderId) { this.leaderId = leaderId; }
     public Integer getId() { return id; }
@@ -31,7 +31,7 @@ public class TeamDetailVO {
     public List<CommentVO> getComments() { return comments; }
     public void setComments(List<CommentVO> comments) { this.comments = comments; }
 
-    // ========== 新增的 getter/setter ==========
+    // ========== 鏂板鐨?getter/setter ==========
     public Integer getStatus() { return status; }
     public void setStatus(Integer status) { this.status = status; }
 }

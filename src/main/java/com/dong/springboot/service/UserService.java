@@ -1,6 +1,6 @@
 package com.dong.springboot.service;
 
-import com.dong.springboot.dao.UserRepository;
+import com.dong.springboot.mapper.UserMapper;
 import com.dong.springboot.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 public class UserService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper UserMapper;
 
     public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
+        return UserMapper.findByUsername(username);
     }
 
     public void save(User user) {
@@ -30,6 +30,6 @@ public class UserService {
         if (user.getRole() == null) {
             user.setRole(0);
         }
-        userRepository.save(user);
+        UserMapper.save(user);
     }
 }

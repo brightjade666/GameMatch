@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dong.springboot.mapper.TeamHeatStatMapper">
+
+    <update id="incrementView">
+        INSERT INTO team_heat_stat
+            (team_id, view_count, comment_count, apply_count, publish_score, total_score, update_time)
+        VALUES
+            (#{teamId}, 1, 0, 0, 10, 11, NOW())
+        ON DUPLICATE KEY UPDATE
+            view_count = view_count + 1,
+            total_score = total_score + 1,
+            update_time = NOW()
+    </update>
+
+    <update id="incrementComment">
+        INSERT INTO team_heat_stat
+            (team_id, view_count, comment_count, apply_count, publish_score, total_score, update_time)
+        VALUES
+            (#{teamId}, 0, 1, 0, 10, 13, NOW())
+        ON DUPLICATE KEY UPDATE
+            comment_count = comment_count + 1,
+            total_score = total_score + 3,
+            update_time = NOW()
+    </update>
+
+    <update id="incrementApply">
+        INSERT INTO team_heat_stat
+            (team_id, view_count, comment_count, apply_count, publish_score, total_score, update_time)
+        VALUES
+            (#{teamId}, 0, 0, 1, 10, 15, NOW())
+        ON DUPLICATE KEY UPDATE
+            apply_count = apply_count + 1,
+            total_score = total_score + 5,
+            update_time = NOW()
+    </update>
+
+    <insert id="initializeMissingActiveTeams">
+        INSERT INTO team_heat_stat
+            (team_id, view_count, comment_count, apply_count, publish_score, total_score, update_time)
+        SELECT
+            t.team_id, 0, 0, 0, 10, 10, NOW()
+        FROM team_recruit t
+        LEFT JOIN team_heat_stat h ON h.team_id = t.team_id
+        WHERE t.status = 1
+          AND h.team_id IS NULL
+    </insert>
+
+    <select id="selectActiveTeamStats" resultType="com.dong.springboot.entity.TeamHeatStat">
+        SELECT
+            h.team_id,
+            h.view_count,
+            h.comment_count,
+            h.apply_count,
+            h.publish_score,
+            h.total_score,
+            h.update_time
+        FROM team_heat_stat h
+        INNER JOIN team_recruit t ON t.team_id = h.team_id
+        WHERE t.status = 1
+    </select>
+
+</mapper>

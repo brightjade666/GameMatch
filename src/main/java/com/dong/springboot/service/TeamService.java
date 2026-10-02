@@ -1,139 +1,139 @@
 package com.dong.springboot.service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.dong.springboot.entity.*;
-import com.dong.springboot.dao.*;
-import com.dong.springboot.vo.*;
+import com.dong.springboot.annotation.OperationLog;
+import com.dong.springboot.entity.Game;
+import com.dong.springboot.entity.SystemNotification;
+import com.dong.springboot.entity.TeamApply;
+import com.dong.springboot.entity.TeamComment;
+import com.dong.springboot.entity.TeamMember;
+import com.dong.springboot.entity.TeamRecruit;
+import com.dong.springboot.entity.User;
+import com.dong.springboot.mapper.GameMapper;
+import com.dong.springboot.mapper.SystemNotificationMapper;
+import com.dong.springboot.mapper.TeamApplyMapper;
+import com.dong.springboot.mapper.TeamCommentMapper;
+import com.dong.springboot.mapper.TeamMemberMapper;
+import com.dong.springboot.mapper.TeamRecruitMapper;
+import com.dong.springboot.mapper.UserMapper;
+import com.dong.springboot.vo.CommentVO;
+import com.dong.springboot.vo.TeamDetailVO;
+import com.dong.springboot.vo.TeamVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class TeamService {
 
-    private final GameRepository gameRepository;
-    private final TeamRecruitRepository teamRecruitRepo;
-    private final UserRepository userRepo;
-    private final TeamCommentRepository commentRepo;
-    private final TeamMemberRepository teamMemberRepo;
-    private final TeamApplyRepository teamApplyRepo;
-    private final SystemNotificationRepository notiRepo;
+    private final GameMapper gameMapper;
+    private final TeamRecruitMapper teamRecruitRepo;
+    private final UserMapper userRepo;
+    private final TeamMemberMapper teamMemberRepo;
+    private final TeamApplyMapper teamApplyRepo;
+    private final TeamCommentMapper commentRepo;
+    private final SystemNotificationMapper notiRepo;
+    private final UnreadCountService unreadCountService;
+    private final TeamDetailCacheService teamDetailCacheService;
+    private final TeamBloomFilterService teamBloomFilterService;
+    private final TeamRankService teamRankService;
 
-
-    public TeamService(TeamRecruitRepository teamRecruitRepo,
-                       UserRepository userRepo,
-                       TeamCommentRepository commentRepo,
-                       TeamMemberRepository teamMemberRepo,
-                       TeamApplyRepository teamApplyRepo,
-                       SystemNotificationRepository notiRepo,
-                       GameRepository gameRepository) {
+    public TeamService(TeamRecruitMapper teamRecruitRepo,
+                       UserMapper userRepo,
+                       TeamMemberMapper teamMemberRepo,
+                       TeamApplyMapper teamApplyRepo,
+                       TeamCommentMapper commentRepo,
+                       SystemNotificationMapper notiRepo,
+                       GameMapper gameMapper,
+                       UnreadCountService unreadCountService,
+                       TeamDetailCacheService teamDetailCacheService,
+                       TeamBloomFilterService teamBloomFilterService,
+                       TeamRankService teamRankService) {
         this.teamRecruitRepo = teamRecruitRepo;
         this.userRepo = userRepo;
-        this.commentRepo = commentRepo;
         this.teamMemberRepo = teamMemberRepo;
         this.teamApplyRepo = teamApplyRepo;
+        this.commentRepo = commentRepo;
         this.notiRepo = notiRepo;
-        this.gameRepository = gameRepository;
+        this.gameMapper = gameMapper;
+        this.unreadCountService = unreadCountService;
+        this.teamDetailCacheService = teamDetailCacheService;
+        this.teamBloomFilterService = teamBloomFilterService;
+        this.teamRankService = teamRankService;
     }
 
-    // 招募列表（可选根据用户ID排序）
     public List<TeamDetailVO> getRecruitList(Integer userId) {
         List<TeamRecruit> teams = teamRecruitRepo.findByStatus(1);
-        // 获取用户常玩游戏名称
         String userGameName = null;
         if (userId != null) {
             User user = userRepo.findById(userId).orElse(null);
             if (user != null && user.getGameId() != null) {
-                Game game = gameRepository.findById(user.getGameId()).orElse(null);
+                Game game = gameMapper.findById(user.getGameId()).orElse(null);
                 if (game != null) {
                     userGameName = game.getGameName();
                 }
             }
         }
-        // 根据队伍需求（即游戏名称）排序：与用户游戏相同或包含的优先
+
         if (userGameName != null) {
-            final String game = userGameName.trim().toLowerCase();
+            String keyword = userGameName.trim().toLowerCase();
             teams = teams.stream()
-                    .sorted(Comparator.comparingInt(t -> {
-                        if (t.getTeamNeed() == null) return 1;
-                        return t.getTeamNeed().toLowerCase().contains(game) ? 0 : 1;
-                    }))
-                    .collect(Collectors.toList());
+                    .sorted(Comparator.comparingInt(team ->
+                            team.getTeamNeed() != null && team.getTeamNeed().toLowerCase().contains(keyword) ? 0 : 1))
+                    .toList();
         }
-        // 转换为 VO 列表
+
         List<TeamDetailVO> result = new ArrayList<>();
-        for (TeamRecruit t : teams) {
+        for (TeamRecruit team : teams) {
             TeamDetailVO vo = new TeamDetailVO();
-            vo.setId(t.getTeamId());
-            vo.setTitle(t.getTeamName());
-            vo.setAvatar(t.getTeamCover());
-            vo.setNeed(t.getTeamNeed());
-            vo.setDesc(t.getTeamDesc());
-            Optional<User> leader = userRepo.findById(t.getLeaderId());
-            vo.setLeader(leader.map(User::getUsername).orElse("未知用户"));
+            vo.setId(team.getTeamId());
+            vo.setTitle(team.getTeamName());
+            vo.setAvatar(team.getTeamCover());
+            vo.setNeed(team.getTeamNeed());
+            vo.setDesc(team.getTeamDesc());
+            vo.setLeader(userRepo.findById(team.getLeaderId()).map(User::getUsername).orElse("unknown"));
             result.add(vo);
         }
         return result;
     }
 
-    // 队伍详情（带评论，评论按最新优先）
+    @Transactional
+    @OperationLog("查看队伍详情")
     public TeamDetailVO getDetail(Integer teamId) {
-        TeamRecruit t = teamRecruitRepo.findById(teamId).orElse(null);
-        if (t == null) return null;
-        TeamDetailVO vo = new TeamDetailVO();
-        vo.setId(t.getTeamId());
-        vo.setTitle(t.getTeamName());
-        vo.setAvatar(t.getTeamCover());
-        vo.setNeed(t.getTeamNeed());
-        vo.setDesc(t.getTeamDesc());
-        vo.setLeaderId(t.getLeaderId());
-        Optional<User> leader = userRepo.findById(t.getLeaderId());
-        vo.setLeader(leader.map(User::getUsername).orElse("未知用户"));
-
-        // 修改：按创建时间降序获取评论（最新在前）
-        List<TeamComment> comments = commentRepo.findByTeamIdOrderByCreateTimeDesc(teamId);
-        List<CommentVO> commentVOList = new ArrayList<>();
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM-dd HH:mm");
-        for (TeamComment c : comments) {
-            CommentVO cv = new CommentVO();
-            Optional<User> cu = userRepo.findById(c.getUserId());
-            User user = cu.orElse(null);
-            cv.setAuthor(user != null ? user.getUsername() : "匿名");
-            cv.setText(c.getContent());
-            cv.setTime(c.getCreateTime().format(fmt));
-            cv.setUserId(c.getUserId());
-            // 设置头像
-            cv.setAvatar(user != null ? user.getAvatar() : null);
-            commentVOList.add(cv);
+        TeamDetailVO detail = teamDetailCacheService.getTeamDetail(teamId);
+        if (detail != null && Integer.valueOf(1).equals(detail.getStatus())) {
+            teamRankService.recordView(teamId);
         }
-        vo.setComments(commentVOList);
-        return vo;
+        return detail;
     }
 
-    // 新增：发表评论
     @Transactional
+    @OperationLog("发表评论")
     public CommentVO addComment(Integer teamId, Integer userId, String content) {
         if (content == null || content.trim().isEmpty()) {
-            throw new RuntimeException("评论内容不能为空");
+            throw new RuntimeException("Comment cannot be empty");
         }
+
         TeamComment comment = new TeamComment();
         comment.setTeamId(teamId);
         comment.setUserId(userId);
         comment.setContent(content);
         comment.setCreateTime(LocalDateTime.now());
         commentRepo.save(comment);
-
-        // 返回新评论的 VO
+        teamDetailCacheService.deleteTeamDetailCacheAfterCommit(teamId);
         CommentVO vo = new CommentVO();
         User user = userRepo.findById(userId).orElse(null);
-        vo.setAuthor(user != null ? user.getUsername() : "匿名");
+        vo.setAuthor(user != null ? user.getUsername() : "anonymous");
         vo.setText(content);
-        vo.setTime(comment.getCreateTime().format(DateTimeFormatter.ofPattern("MM-dd HH:mm")));
+        vo.setTime(comment.getCreateTime().toString());
         vo.setUserId(userId);
-        vo.setAvatar(user != null ? user.getAvatar() : null); // 设置头像
+        vo.setAvatar(user != null ? user.getAvatar() : null);
+        teamRankService.recordComment(teamId);
         return vo;
     }
 
@@ -142,91 +142,96 @@ public class TeamService {
     }
 
     @Transactional
+    @OperationLog("解散队伍")
     public void dissolveTeam(Integer teamId, Integer leaderId) {
         TeamRecruit team = teamRecruitRepo.findById(teamId).orElse(null);
         if (team == null || !team.getLeaderId().equals(leaderId)) {
-            throw new RuntimeException("无权操作或队伍不存在");
+            throw new RuntimeException("No permission or team not found");
         }
+
         team.setStatus(0);
         teamRecruitRepo.save(team);
 
         List<TeamMember> members = teamMemberRepo.findByTeamId(teamId);
-        for (TeamMember m : members) {
-            if (!m.getUserId().equals(leaderId)) {
-                SystemNotification noti = new SystemNotification();
-                noti.setUserId(m.getUserId());
-                noti.setContent("您所在的队伍「" + team.getTeamName() + "」已被队长解散");
-                noti.setType("dissolve");
-                noti.setRelatedId(teamId);
-                noti.setCreateTime(LocalDateTime.now());
-                notiRepo.save(noti);
+        for (TeamMember member : members) {
+            if (!member.getUserId().equals(leaderId)) {
+                saveNoti(buildNoti(member.getUserId(), "dissolve", teamId,
+                        "Your team [" + team.getTeamName() + "] has been dissolved"));
             }
         }
-        SystemNotification noti = new SystemNotification();
-        noti.setUserId(leaderId);
-        noti.setContent("您已解散队伍「" + team.getTeamName() + "」");
-        noti.setType("dissolve");
-        noti.setRelatedId(teamId);
-        noti.setCreateTime(LocalDateTime.now());
-        notiRepo.save(noti);
+
+        saveNoti(buildNoti(leaderId, "dissolve", teamId,
+                "You have dissolved team [" + team.getTeamName() + "]"));
 
         teamMemberRepo.deleteAll(members);
+        teamDetailCacheService.deleteTeamDetailCacheAfterCommit(teamId);
+        teamRankService.removeAfterCommit(teamId);
     }
 
     @Transactional
+    @OperationLog("退出队伍")
     public void leaveTeam(Integer teamId, Integer userId) {
         List<TeamMember> members = teamMemberRepo.findByTeamId(teamId);
-        boolean exists = members.stream().anyMatch(m -> m.getUserId().equals(userId));
+        boolean exists = members.stream().anyMatch(member -> member.getUserId().equals(userId));
         if (!exists) {
-            throw new RuntimeException("你不是该队成员");
+            throw new RuntimeException("Not in team");
         }
 
-        List<TeamMember> userMembers = teamMemberRepo.findByUserId(userId);
-        for (TeamMember m : userMembers) {
-            if (m.getTeamId().equals(teamId)) {
-                teamMemberRepo.delete(m);
-                break;
-            }
-        }
+        teamMemberRepo.deleteByTeamIdAndUserId(teamId, userId);
 
         TeamRecruit team = teamRecruitRepo.findById(teamId).orElse(null);
-        if (team != null) {
-            team.setCurrentNum(team.getCurrentNum() - 1);
-            teamRecruitRepo.save(team);
-
-            User user = userRepo.findById(userId).orElse(null);
-            String nick = user != null ? user.getUsername() : "玩家";
-
-            SystemNotification notiToLeader = new SystemNotification();
-            notiToLeader.setUserId(team.getLeaderId());
-            notiToLeader.setContent("队员 " + nick + " 退出了队伍「" + team.getTeamName() + "」");
-            notiToLeader.setType("leave");
-            notiToLeader.setRelatedId(teamId);
-            notiToLeader.setCreateTime(LocalDateTime.now());
-            notiRepo.save(notiToLeader);
-
-            SystemNotification notiToSelf = new SystemNotification();
-            notiToSelf.setUserId(userId);
-            notiToSelf.setContent("你已退出队伍「" + team.getTeamName() + "」");
-            notiToSelf.setType("leave");
-            notiToSelf.setRelatedId(teamId);
-            notiToSelf.setCreateTime(LocalDateTime.now());
-            notiRepo.save(notiToSelf);
+        if (team == null) {
+            return;
         }
+
+        team.setCurrentNum(Math.max(0, team.getCurrentNum() - 1));
+        teamRecruitRepo.save(team);
+
+        User user = userRepo.findById(userId).orElse(null);
+        String nick = user != null ? user.getUsername() : "user";
+
+        saveNoti(buildNoti(team.getLeaderId(), "leave", teamId,
+                "Member " + nick + " left team [" + team.getTeamName() + "]"));
+        saveNoti(buildNoti(userId, "leave", teamId,
+                "You left team [" + team.getTeamName() + "]"));
+        teamDetailCacheService.deleteTeamDetailCacheAfterCommit(teamId);
     }
 
     @Transactional
+    @OperationLog("发布队伍")
     public void publish(TeamRecruit team) {
         team.setStatus(1);
         team.setCurrentNum(1);
         team.setCreateTime(LocalDateTime.now());
         teamRecruitRepo.save(team);
+        teamBloomFilterService.put(team.getTeamId());
 
         TeamMember member = new TeamMember();
         member.setTeamId(team.getTeamId());
         member.setUserId(team.getLeaderId());
         member.setJoinTime(LocalDateTime.now());
         teamMemberRepo.save(member);
+        teamRankService.initializeTeam(team.getTeamId());
+        teamDetailCacheService.deleteTeamDetailCacheAfterCommit(team.getTeamId());
+    }
+
+    @Transactional
+    @OperationLog("申请加入队伍")
+    public boolean submitApply(TeamApply apply) {
+        List<TeamApply> existingList = teamApplyRepo.findByTeamIdAndUserId(apply.getTeamId(), apply.getUserId());
+        if (existingList != null && !existingList.isEmpty()) {
+            TeamApply existing = existingList.get(0);
+            existing.setStatus(0);
+            existing.setApplyTime(LocalDateTime.now());
+            teamApplyRepo.save(existing);
+            return false;
+        }
+
+        apply.setStatus(0);
+        apply.setApplyTime(LocalDateTime.now());
+        teamApplyRepo.save(apply);
+        teamRankService.recordApply(apply.getTeamId());
+        return true;
     }
 
     public List<TeamVO> getMyTeamsWithMembers(Integer userId) {
@@ -234,7 +239,9 @@ public class TeamService {
         List<TeamVO> result = new ArrayList<>();
         for (TeamMember member : myMembers) {
             TeamRecruit team = teamRecruitRepo.findById(member.getTeamId()).orElse(null);
-            if (team == null || team.getStatus() != 1) continue;
+            if (team == null || team.getStatus() != 1) {
+                continue;
+            }
 
             List<TeamMember> teamMembers = teamMemberRepo.findByTeamId(team.getTeamId());
             TeamVO vo = new TeamVO();
@@ -245,13 +252,11 @@ public class TeamService {
             vo.setMembers(teamMembers);
 
             List<Map<String, Object>> details = new ArrayList<>();
-            for (TeamMember tm : teamMembers) {
+            for (TeamMember teamMember : teamMembers) {
                 Map<String, Object> item = new HashMap<>();
-                item.put("userId", tm.getUserId());
-                item.put("joinTime", tm.getJoinTime() != null ?
-                        tm.getJoinTime().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")) : "");
-                Optional<User> u = userRepo.findById(tm.getUserId());
-                item.put("nick", u.map(User::getUsername).orElse("未知用户"));
+                item.put("userId", teamMember.getUserId());
+                item.put("joinTime", teamMember.getJoinTime() != null ? teamMember.getJoinTime().toString() : "");
+                item.put("nick", userRepo.findById(teamMember.getUserId()).map(User::getUsername).orElse("unknown"));
                 details.add(item);
             }
             vo.setMemberDetails(details);
@@ -261,9 +266,12 @@ public class TeamService {
     }
 
     @Transactional
+    @OperationLog("同意加入申请")
     public void agreeApply(Integer applyId) {
         TeamApply apply = teamApplyRepo.findById(applyId).orElse(null);
-        if (apply == null || apply.getStatus() != 0) return;
+        if (apply == null || apply.getStatus() != 0) {
+            return;
+        }
 
         apply.setStatus(1);
         teamApplyRepo.save(apply);
@@ -280,18 +288,13 @@ public class TeamService {
             teamRecruitRepo.save(team);
         }
 
-        User applier = userRepo.findById(apply.getUserId()).orElse(null);
-        String nick = applier != null ? applier.getUsername() : "玩家";
-        SystemNotification noti = new SystemNotification();
-        noti.setUserId(apply.getUserId());
-        noti.setContent("你已成功加入队伍「" + (team != null ? team.getTeamName() : "未知队伍") + "」");
-        noti.setType("join");
-        noti.setRelatedId(apply.getTeamId());
-        noti.setCreateTime(LocalDateTime.now());
-        notiRepo.save(noti);
+        saveNoti(buildNoti(apply.getUserId(), "join", apply.getTeamId(),
+                "You joined team [" + (team != null ? team.getTeamName() : "unknown") + "]"));
+        teamDetailCacheService.deleteTeamDetailCacheAfterCommit(apply.getTeamId());
     }
 
     @Transactional
+    @OperationLog("拒绝加入申请")
     public void rejectApply(Integer applyId) {
         TeamApply apply = teamApplyRepo.findById(applyId).orElse(null);
         if (apply != null) {
@@ -301,58 +304,50 @@ public class TeamService {
     }
 
     public String getUserNameById(Integer userId) {
-        return userRepo.findById(userId)
-                .map(User::getUsername)
-                .orElse("未知用户");
+        return userRepo.findById(userId).map(User::getUsername).orElse("unknown");
     }
 
-    // 队长移除成员（完整实现）
     @Transactional
+    @OperationLog("移除队伍成员")
     public void removeMember(Integer teamId, Integer leaderId, Integer userId) {
-        TeamRecruit team = teamRecruitRepo.findById(teamId).orElseThrow(() -> new RuntimeException("队伍不存在"));
-        if (!team.getLeaderId().equals(leaderId)) throw new RuntimeException("无权限");
+        TeamRecruit team = teamRecruitRepo.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team not found"));
+        if (!team.getLeaderId().equals(leaderId)) {
+            throw new RuntimeException("No permission");
+        }
 
         List<TeamMember> members = teamMemberRepo.findByTeamId(teamId);
-        boolean exists = members.stream().anyMatch(m -> m.getUserId().equals(userId));
-        if (!exists) throw new RuntimeException("该用户不在队伍中");
+        boolean exists = members.stream().anyMatch(member -> member.getUserId().equals(userId));
+        if (!exists) {
+            throw new RuntimeException("User not in team");
+        }
 
-        // 删除成员
-        teamMemberRepo.deleteByTeamIdAndUserId(teamId, userId); // 需要在 repository 中声明该方法
-        team.setCurrentNum(team.getCurrentNum() - 1);
+        teamMemberRepo.deleteByTeamIdAndUserId(teamId, userId);
+        team.setCurrentNum(Math.max(0, team.getCurrentNum() - 1));
         teamRecruitRepo.save(team);
 
-        SystemNotification noti = new SystemNotification();
-        noti.setUserId(userId);
-        noti.setContent("你已被队长移出队伍「" + team.getTeamName() + "」");
-        noti.setType("kick");
-        noti.setCreateTime(LocalDateTime.now());
-        notiRepo.save(noti);
+        saveNoti(buildNoti(userId, "kick", teamId,
+                "You were removed from team [" + team.getTeamName() + "]"));
+        teamDetailCacheService.deleteTeamDetailCacheAfterCommit(teamId);
     }
 
-
-    // ===================== 新增方法 =====================
-
-    // 获取所有队伍
     public List<TeamRecruit> getAllTeams() {
         return teamRecruitRepo.findAll();
     }
 
-    // 统计队伍数量
     public long countTeams() {
         return teamRecruitRepo.count();
     }
 
-    // 按队伍名模糊搜索
     public List<TeamRecruit> searchByTeamName(String keyword) {
         return teamRecruitRepo.findByTeamNameContaining(keyword);
     }
 
-    // 获取用户加入的队伍（通过 team_member 表查找）
     public List<TeamRecruit> getJoinedTeams(Integer userId) {
         List<TeamMember> members = teamMemberRepo.findByUserId(userId);
         List<TeamRecruit> result = new ArrayList<>();
-        for (TeamMember m : members) {
-            TeamRecruit team = teamRecruitRepo.findById(m.getTeamId()).orElse(null);
+        for (TeamMember member : members) {
+            TeamRecruit team = teamRecruitRepo.findById(member.getTeamId()).orElse(null);
             if (team != null) {
                 result.add(team);
             }
@@ -360,35 +355,41 @@ public class TeamService {
         return result;
     }
 
-    /**
-     * 管理员强制解散队伍（不校验队长身份）
-     * 通知所有队员，并清除成员记录
-     */
     @Transactional
+    @OperationLog("管理员解散队伍")
     public void adminDissolveTeam(Integer teamId, Integer adminId) {
         TeamRecruit team = teamRecruitRepo.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("队伍不存在"));
+                .orElseThrow(() -> new RuntimeException("Team not found"));
         if (team.getStatus() == 0) {
-            return; // 已解散，无需操作
+            return;
         }
 
-        // 1. 设置队伍状态为已解散
         team.setStatus(0);
         teamRecruitRepo.save(team);
 
-        // 2. 通知所有队员
         List<TeamMember> members = teamMemberRepo.findByTeamId(teamId);
-        for (TeamMember m : members) {
-            SystemNotification noti = new SystemNotification();
-            noti.setUserId(m.getUserId());
-            noti.setContent("队伍「" + team.getTeamName() + "」已被管理员强制解散");
-            noti.setType("admin_dissolve");
-            noti.setRelatedId(teamId);
-            noti.setCreateTime(LocalDateTime.now());
-            notiRepo.save(noti);
+        for (TeamMember member : members) {
+            saveNoti(buildNoti(member.getUserId(), "admin_dissolve", teamId,
+                    "Team [" + team.getTeamName() + "] was dissolved by admin"));
         }
 
-        // 3. 删除所有成员记录
         teamMemberRepo.deleteAll(members);
+        teamDetailCacheService.deleteTeamDetailCacheAfterCommit(teamId);
+        teamRankService.removeAfterCommit(teamId);
+    }
+
+    private SystemNotification buildNoti(Integer userId, String type, Integer relatedId, String content) {
+        SystemNotification noti = new SystemNotification();
+        noti.setUserId(userId);
+        noti.setType(type);
+        noti.setRelatedId(relatedId);
+        noti.setContent(content);
+        noti.setCreateTime(LocalDateTime.now());
+        return noti;
+    }
+
+    private void saveNoti(SystemNotification noti) {
+        notiRepo.save(noti);
+        unreadCountService.incrementNotification(noti.getUserId());
     }
 }

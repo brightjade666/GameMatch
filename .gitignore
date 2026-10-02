@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local runtime files ###
+*.log
+upload/
+.env
+.env.local

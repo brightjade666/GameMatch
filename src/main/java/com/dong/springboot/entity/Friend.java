@@ -1,23 +1,22 @@
 package com.dong.springboot.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "friend")
+@TableName("friend")
 public class Friend {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
-
     private Integer userId;
     private Integer friendId;
-    private Integer status;        // 0-申请中 1-已同意 2-已拒绝
-    private String reason;         // 新增：申请原因
+    private Integer status;
+    private String reason;
     private LocalDateTime createTime;
 
-    // ===== 手动添加 getter/setter =====
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
     public Integer getUserId() { return userId; }

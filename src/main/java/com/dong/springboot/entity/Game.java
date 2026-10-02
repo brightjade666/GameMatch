@@ -1,20 +1,17 @@
 package com.dong.springboot.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
-@Entity
-@Table(name = "game")
+@TableName("game")
 public class Game {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "game_id")
+    @TableId(value = "game_id", type = IdType.AUTO)
     private Integer gameId;
 
-    @Column(name = "game_name")
     private String gameName;
 
-    // 新增 status 字段
     private Integer status;
 
     public Integer getGameId() {

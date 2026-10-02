@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dong.springboot.mapper.FriendMapper">
+
+    <select id="selectFriendList" resultType="com.dong.springboot.vo.FriendVO">
+        SELECT DISTINCT
+            u.user_id AS friend_id,
+            u.username AS name,
+            u.avatar,
+            u.game_rank AS game_rank
+        FROM friend f
+        JOIN user u ON u.user_id = f.friend_id
+        WHERE f.user_id = #{userId}
+          AND f.status = 1
+        UNION
+        SELECT DISTINCT
+            u.user_id AS friend_id,
+            u.username AS name,
+            u.avatar,
+            u.game_rank AS game_rank
+        FROM friend f
+        JOIN user u ON u.user_id = f.user_id
+        WHERE f.friend_id = #{userId}
+          AND f.status = 1
+    </select>
+
+    <select id="selectPrivateChatSessions" resultType="com.dong.springboot.vo.ChatSessionVO">
+        SELECT
+            x.friend_id AS session_id,
+            'private' AS session_type,
+            u.username AS name,
+            u.avatar AS avatar,
+            (
+                SELECT pm.content
+                FROM private_message pm
+                WHERE (pm.from_id = #{userId} AND pm.to_id = x.friend_id)
+                   OR (pm.from_id = x.friend_id AND pm.to_id = #{userId})
+                ORDER BY pm.send_time DESC
+                LIMIT 1
+            ) AS last_msg,
+            (
+                SELECT DATE_FORMAT(pm.send_time, '%m-%d %H:%i')
+                FROM private_message pm
+                WHERE (pm.from_id = #{userId} AND pm.to_id = x.friend_id)
+                   OR (pm.from_id = x.friend_id AND pm.to_id = #{userId})
+                ORDER BY pm.send_time DESC
+                LIMIT 1
+            ) AS last_time
+        FROM (
+            SELECT f.friend_id
+            FROM friend f
+            WHERE f.user_id = #{userId}
+              AND f.status = 1
+            UNION
+            SELECT f.user_id AS friend_id
+            FROM friend f
+            WHERE f.friend_id = #{userId}
+              AND f.status = 1
+        ) x
+        JOIN user u ON u.user_id = x.friend_id
+    </select>
+
+</mapper>

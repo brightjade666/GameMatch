@@ -1,53 +1,29 @@
 package com.dong.springboot.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "user_profile")
+@TableName("user_profile")
 public class UserProfile {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "profile_id")
+    @TableId(value = "profile_id", type = IdType.AUTO)
     private Integer profileId;
 
-    @Column(name = "user_id")
     private Integer userId;
-
-    @Column(name = "game_id")
     private Integer gameId;
-
-    @Column(name = "game_rank")
     private String gameRank;
-
-    @Column(name = "main_position")
     private String mainPosition;
-
-    @Column(name = "play_time")
     private String playTime;
-
     private String personality;
-
-    @Column(name = "preferred_mode")
     private String preferredMode;
-
-    @Column(name = "favorite_heroes")
     private String favoriteHeroes;
-
-    @Column(name = "win_rate")
     private Double winRate;
-
-    @Column(name = "total_matches")
     private Integer totalMatches;
-
-    @Column(name = "team_requirement")
     private String teamRequirement;
-
-    @Column(name = "created_at")
     private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     // getter & setter

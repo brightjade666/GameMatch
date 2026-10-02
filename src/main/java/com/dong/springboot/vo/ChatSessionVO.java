@@ -9,7 +9,7 @@ public class ChatSessionVO {
     private String lastTime;
     private Integer ownerId;
 
-    // ====== 手动 getter/setter ======
+    // ====== 鎵嬪姩 getter/setter ======
     public Integer getSessionId() { return sessionId; }
     public void setSessionId(Integer sessionId) { this.sessionId = sessionId; }
 

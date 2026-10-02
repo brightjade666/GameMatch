@@ -1,15 +1,15 @@
 package com.dong.springboot.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
-@Table(name = "user")
-@Entity
+@TableName("user")
 public class User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
+    @TableId(value = "user_id", type = IdType.AUTO)
     private Integer userId;
 
     private String username;
@@ -26,7 +26,7 @@ public class User {
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 
-    // ↓↓↓↓↓ 下面是全部 getter 和 setter，一个都不少 ↓↓↓↓↓
+    // 鈫撯啌鈫撯啌鈫?涓嬮潰鏄叏閮?getter 鍜?setter锛屼竴涓兘涓嶅皯 鈫撯啌鈫撯啌鈫?
 
     public Integer getUserId() {
         return userId;

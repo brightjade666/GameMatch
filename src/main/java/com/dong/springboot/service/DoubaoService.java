@@ -1,6 +1,6 @@
 package com.dong.springboot.service;
 
-import com.dong.springboot.dao.AiChatRecordRepository;
+import com.dong.springboot.mapper.AiChatRecordMapper;
 import com.dong.springboot.entity.AiChatRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -22,13 +22,13 @@ public class DoubaoService {
     @Value("${doubao.url}")
     private String apiUrl;
 
-    // 构造器注入（你项目统一风格）
-    private final AiChatRecordRepository aiChatRecordRepository;
+    // 鏋勯€犲櫒娉ㄥ叆锛堜綘椤圭洰缁熶竴椋庢牸锛?
+    private final AiChatRecordMapper AiChatRecordMapper;
     private final Map<String, List<Map<String, Object>>> contextMap = new HashMap<>();
 
-    // 构造器注入 → 完全不用 @Resource @Autowired
-    public DoubaoService(AiChatRecordRepository aiChatRecordRepository) {
-        this.aiChatRecordRepository = aiChatRecordRepository;
+    // 鏋勯€犲櫒娉ㄥ叆 鈫?瀹屽叏涓嶇敤 @Resource @Autowired
+    public DoubaoService(AiChatRecordMapper AiChatRecordMapper) {
+        this.AiChatRecordMapper = AiChatRecordMapper;
     }
 
     public String chat(Integer userId, String userMessage) {
@@ -38,7 +38,7 @@ public class DoubaoService {
             if (messages.isEmpty()) {
                 Map<String, Object> system = new HashMap<>();
                 system.put("role", "system");
-                system.put("content", "你是友好的游戏开黑AI助手");
+                system.put("content", "浣犳槸鍙嬪ソ鐨勬父鎴忓紑榛慉I鍔╂墜");
                 messages.add(system);
             }
 
@@ -64,7 +64,7 @@ public class DoubaoService {
             Map<String, Object> messageObj = (Map<String, Object>) choices.get(0).get("message");
             String aiReply = (String) messageObj.get("content");
 
-            // 上下文记忆
+            // 涓婁笅鏂囪蹇?
             Map<String, Object> assistant = new HashMap<>();
             assistant.put("role", "assistant");
             assistant.put("content", aiReply);
@@ -72,7 +72,7 @@ public class DoubaoService {
             contextMap.put(userId.toString(), messages);
 
             // ======================
-            // 保存聊天记录到数据库
+            // 淇濆瓨鑱婂ぉ璁板綍鍒版暟鎹簱
             // ======================
             AiChatRecord record = new AiChatRecord();
             record.setUserId(userId);
@@ -80,13 +80,13 @@ public class DoubaoService {
             record.setAiReply(aiReply);
             record.setChatType("doubao");
             record.setCreateTime(LocalDateTime.now());
-            aiChatRecordRepository.save(record);
+            AiChatRecordMapper.save(record);
 
             return aiReply;
 
         } catch (Exception e) {
             e.printStackTrace();
-            return "AI 走神啦，再问我一次~";
+            return "AI 璧扮鍟︼紝鍐嶉棶鎴戜竴娆";
         }
     }
 }

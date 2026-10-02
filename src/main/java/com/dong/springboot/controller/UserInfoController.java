@@ -1,6 +1,6 @@
 package com.dong.springboot.controller;
 
-import com.dong.springboot.dao.UserProfileRepository;
+import com.dong.springboot.mapper.UserProfileMapper;
 import com.dong.springboot.entity.UserProfile;
 import com.dong.springboot.service.UserInfoService;
 import com.dong.springboot.vo.UserInfoVO;
@@ -14,13 +14,13 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user")
-// 👇 删掉所有 @CrossOrigin 注解！！！
+// 馃憞 鍒犳帀鎵€鏈?@CrossOrigin 娉ㄨВ锛侊紒锛?
 public class UserInfoController {
 
     private final UserInfoService userInfoService;
 
     @Autowired
-    private UserProfileRepository userProfileRepository;
+    private UserProfileMapper UserProfileMapper;
 
     public UserInfoController(UserInfoService userInfoService) {
         this.userInfoService = userInfoService;
@@ -42,7 +42,7 @@ public class UserInfoController {
         userInfoService.updateUserInfo(vo);
         Map<String, Object> map = new HashMap<>();
         map.put("code", 200);
-        map.put("msg", "保存成功");
+        map.put("msg", "淇濆瓨鎴愬姛");
         return map;
     }
 
@@ -50,16 +50,16 @@ public class UserInfoController {
     public Map<String, Object> match(@RequestParam Integer gameId) {
         Map<String, Object> map = new HashMap<>();
 
-        // 查询数据库中game_id匹配的记录
-        List<UserProfile> profileList = userProfileRepository.findByGameId(gameId);
+        // 鏌ヨ鏁版嵁搴撲腑game_id鍖归厤鐨勮褰?
+        List<UserProfile> profileList = UserProfileMapper.findByGameId(gameId);
 
-        // 提取user_id
+        // 鎻愬彇user_id
         List<Integer> userIdList = profileList.stream()
                 .map(UserProfile::getUserId)
                 .collect(Collectors.toList());
 
         map.put("code", 200);
-        map.put("msg", "匹配成功");
+        map.put("msg", "鍖归厤鎴愬姛");
         map.put("data", userIdList);
         return map;
     }

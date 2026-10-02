@@ -1,14 +1,15 @@
 package com.dong.springboot.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "team_recruit")
+@TableName("team_recruit")
 public class TeamRecruit {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "team_id", type = IdType.AUTO)
     private Integer teamId;
 
     private Integer gameId;

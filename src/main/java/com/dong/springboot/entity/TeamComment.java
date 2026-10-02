@@ -1,14 +1,15 @@
 package com.dong.springboot.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "team_comment")
+@TableName("team_comment")
 public class TeamComment {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
     private Integer teamId;
@@ -16,7 +17,6 @@ public class TeamComment {
     private String content;
     private LocalDateTime createTime;
 
-    // getter & setter
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
     public Integer getTeamId() { return teamId; }

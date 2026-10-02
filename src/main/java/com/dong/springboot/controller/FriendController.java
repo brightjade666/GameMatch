@@ -1,46 +1,58 @@
 package com.dong.springboot.controller;
 
 import com.dong.springboot.common.Result;
-import com.dong.springboot.dao.FriendRepository;
-import com.dong.springboot.dao.UserRepository;
 import com.dong.springboot.entity.Friend;
 import com.dong.springboot.entity.SystemNotification;
 import com.dong.springboot.entity.User;
-import com.dong.springboot.dao.SystemNotificationRepository;
+import com.dong.springboot.mapper.FriendMapper;
+import com.dong.springboot.mapper.SystemNotificationMapper;
+import com.dong.springboot.mapper.UserMapper;
+import com.dong.springboot.service.UnreadCountService;
+import com.dong.springboot.vo.FriendVO;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/friend")
 public class FriendController {
 
-    private final FriendRepository friendRepo;
-    private final UserRepository userRepo;
-    private final SystemNotificationRepository notiRepo;
+    private final FriendMapper friendRepo;
+    private final UserMapper userRepo;
+    private final SystemNotificationMapper notiRepo;
+    private final UnreadCountService unreadCountService;
 
-    public FriendController(FriendRepository friendRepo,
-                            UserRepository userRepo,
-                            SystemNotificationRepository notiRepo) {
+    public FriendController(FriendMapper friendRepo, UserMapper userRepo, SystemNotificationMapper notiRepo, UnreadCountService unreadCountService) {
         this.friendRepo = friendRepo;
         this.userRepo = userRepo;
         this.notiRepo = notiRepo;
+        this.unreadCountService = unreadCountService;
     }
 
-    // 1. 发送好友申请
     @PostMapping("/apply")
     public Result apply(@RequestParam Integer fromUserId,
                         @RequestParam Integer toUserId,
                         @RequestParam(required = false) String reason) {
-        // 修复：接收 List
         List<Friend> existList = friendRepo.findFriendship(fromUserId, toUserId);
         Friend exist = existList.isEmpty() ? null : existList.get(0);
 
         if (exist != null) {
-            if (exist.getStatus() == 1) return Result.error("已经是好友了");
-            if (exist.getStatus() == 0) return Result.error("已经发送过申请，请等待对方处理");
+            if (exist.getStatus() == 1) {
+                return Result.error("已经是好友了");
+            }
+            if (exist.getStatus() == 0) {
+                return Result.error("已经发送过申请，请等待对方处理");
+            }
             exist.setStatus(0);
             exist.setReason(reason);
             exist.setCreateTime(LocalDateTime.now());
@@ -59,38 +71,35 @@ public class FriendController {
         noti.setUserId(toUserId);
         User from = userRepo.findById(fromUserId).orElse(null);
         String nick = from != null ? from.getUsername() : "用户";
-        noti.setContent(nick + " 申请添加您为好友" + (reason != null ? "（原因：" + reason + "）" : ""));
+        String suffix = reason != null && !reason.isBlank() ? "（原因：" + reason + "）" : "";
+        noti.setContent(nick + " 申请添加您为好友" + suffix);
         noti.setType("friend_apply");
         noti.setRelatedId(fromUserId);
         noti.setCreateTime(LocalDateTime.now());
-        notiRepo.save(noti);
-
+        saveNoti(noti);
         return Result.success("申请已发送");
     }
 
-    // 2. 查看收到的好友申请
     @GetMapping("/applies/received")
     public Result receivedApplies(@RequestParam Integer userId) {
         List<Friend> applies = friendRepo.findByFriendIdAndStatus(userId, 0);
         List<Map<String, Object>> list = new ArrayList<>();
-        for (Friend a : applies) {
-            User fromUser = userRepo.findById(a.getUserId()).orElse(null);
+        for (Friend apply : applies) {
+            User fromUser = userRepo.findById(apply.getUserId()).orElse(null);
             Map<String, Object> item = new HashMap<>();
-            item.put("id", a.getId());
-            item.put("fromUserId", a.getUserId());
+            item.put("id", apply.getId());
+            item.put("fromUserId", apply.getUserId());
             item.put("fromName", fromUser != null ? fromUser.getUsername() : "未知");
-            item.put("reason", a.getReason());
-            item.put("createTime", a.getCreateTime());
+            item.put("reason", apply.getReason());
+            item.put("createTime", apply.getCreateTime());
             list.add(item);
         }
         return Result.success(list);
     }
 
-    // 3. 处理好友申请
     @PostMapping("/handle")
     @Transactional
-    public Result handle(@RequestParam Integer applyId,
-                         @RequestParam String action) {
+    public Result handle(@RequestParam Integer applyId, @RequestParam String action) {
         Friend apply = friendRepo.findById(applyId);
         if (apply == null || apply.getStatus() != 0) {
             return Result.error("申请不存在或已处理");
@@ -99,6 +108,7 @@ public class FriendController {
         if ("accept".equals(action)) {
             apply.setStatus(1);
             friendRepo.save(apply);
+
             SystemNotification noti = new SystemNotification();
             noti.setUserId(apply.getUserId());
             User toUser = userRepo.findById(apply.getFriendId()).orElse(null);
@@ -106,61 +116,29 @@ public class FriendController {
             noti.setContent(nick + " 已接受您的好友申请");
             noti.setType("friend_accept");
             noti.setCreateTime(LocalDateTime.now());
-            notiRepo.save(noti);
+            saveNoti(noti);
             return Result.success("已同意");
-        } else if ("reject".equals(action)) {
+        }
+
+        if ("reject".equals(action)) {
             apply.setStatus(2);
             friendRepo.save(apply);
             return Result.success("已拒绝");
         }
+
         return Result.error("无效操作");
     }
 
-    // 4. 获取好友列表
     @GetMapping("/list")
     public Result friendList(@RequestParam Integer userId) {
-        List<Friend> list1 = friendRepo.findByUserId(userId);
-        List<Friend> list2 = friendRepo.findByFriendId(userId);
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        for (Friend f : list1) {
-            if (f.getStatus() == 1) {
-                User friendUser = userRepo.findById(f.getFriendId()).orElse(null);
-                if (friendUser != null) {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("friendId", friendUser.getUserId());
-                    map.put("name", friendUser.getUsername());
-                    map.put("avatar", friendUser.getAvatar());
-                    map.put("gameRank", friendUser.getGameRank());
-                    result.add(map);
-                }
-            }
-        }
-        for (Friend f : list2) {
-            if (f.getStatus() == 1) {
-                User friendUser = userRepo.findById(f.getUserId()).orElse(null);
-                if (friendUser != null) {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("friendId", friendUser.getUserId());
-                    map.put("name", friendUser.getUsername());
-                    map.put("avatar", friendUser.getAvatar());
-                    map.put("gameRank", friendUser.getGameRank());
-                    result.add(map);
-                }
-            }
-        }
+        List<FriendVO> result = friendRepo.selectFriendList(userId);
         return Result.success(result);
     }
 
-    // 5. 删除好友（已修复）
     @DeleteMapping("/delete")
     @Transactional
-    public Result deleteFriend(@RequestParam Integer userId,
-                               @RequestParam Integer friendId) {
-
-        // 重点：接收 List
+    public Result deleteFriend(@RequestParam Integer userId, @RequestParam Integer friendId) {
         List<Friend> friendshipList = friendRepo.findFriendship(userId, friendId);
-
         if (friendshipList.isEmpty()) {
             return Result.error("不是好友关系");
         }
@@ -170,7 +148,6 @@ public class FriendController {
             return Result.error("不是好友关系");
         }
 
-        // 删除双向两条数据
         friendRepo.deleteAll(friendshipList);
 
         SystemNotification noti = new SystemNotification();
@@ -179,8 +156,12 @@ public class FriendController {
         noti.setContent((user != null ? user.getUsername() : "用户") + " 已将您删除好友");
         noti.setType("friend_delete");
         noti.setCreateTime(LocalDateTime.now());
-        notiRepo.save(noti);
-
+        saveNoti(noti);
         return Result.success("删除成功");
+    }
+
+    private void saveNoti(SystemNotification noti) {
+        notiRepo.save(noti);
+        unreadCountService.incrementNotification(noti.getUserId());
     }
 }

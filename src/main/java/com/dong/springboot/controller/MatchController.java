@@ -1,6 +1,7 @@
 package com.dong.springboot.controller;
 
 import com.dong.springboot.common.Result;
+import com.dong.springboot.annotation.LogExecutionTime;
 import com.dong.springboot.service.MatchService;
 import com.dong.springboot.vo.MatchQueryDTO;
 import org.slf4j.Logger;
@@ -25,14 +26,15 @@ public class MatchController {
     private MatchService matchService;
 
     @GetMapping("/matchAdvanced")
+    @LogExecutionTime
     public Result matchAdvanced(MatchQueryDTO query) {
-        log.info("接收到的匹配参数：{}", query);
+        log.info("鎺ユ敹鍒扮殑鍖归厤鍙傛暟锛歿}", query);
         try {
             List<Map<String, Object>> list = matchService.matchUsers(query);
             return Result.success(list);
         } catch (Exception e) {
-            log.error("匹配失败", e);
-            return Result.error("匹配失败");
+            log.error("鍖归厤澶辫触", e);
+            return Result.error("鍖归厤澶辫触");
         }
     }
 }

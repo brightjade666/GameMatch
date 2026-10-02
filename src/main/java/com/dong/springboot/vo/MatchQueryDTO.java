@@ -9,7 +9,7 @@ public class MatchQueryDTO {
     private String personality;
     private Integer excludeUserId;
 
-    // ====== 手动 getter/setter ======
+    // ====== 鎵嬪姩 getter/setter ======
     public Integer getGameId() { return gameId; }
     public void setGameId(Integer gameId) { this.gameId = gameId; }
 

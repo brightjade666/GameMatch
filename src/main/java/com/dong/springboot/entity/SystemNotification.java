@@ -1,22 +1,20 @@
 package com.dong.springboot.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "system_notification")
+@TableName("system_notification")
 public class SystemNotification {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
-    @Column(name = "user_id")
     private Integer userId;
     private String content;
     private String type;
-    @Column(name = "related_id")
     private Integer relatedId;
-    @Column(name = "is_read")
     private Integer isRead;
-    @Column(name = "create_time")
     private LocalDateTime createTime;
 
     public Integer getId() { return id; }

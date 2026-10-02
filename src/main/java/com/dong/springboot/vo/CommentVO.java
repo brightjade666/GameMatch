@@ -4,7 +4,7 @@ public class CommentVO {
     private String author;
     private String text;
     private String time;
-    private Integer userId;  // 新增
+    private Integer userId;  // 鏂板
     private String avatar;
     public String getAuthor() { return author; }
     public void setAuthor(String author) { this.author = author; }

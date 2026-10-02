@@ -4,9 +4,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class FirstController {
-    // 测试接口：http://localhost:8081/hello
+    // 娴嬭瘯鎺ュ彛锛歨ttp://localhost:8081/hello
     @GetMapping("/hello")
     public String hello() {
-        return "SpringBoot 启动成功！接口正常运行～";
+        return "SpringBoot 鍚姩鎴愬姛锛佹帴鍙ｆ甯歌繍琛岋綖";
     }
 }
+
+
+//分成基础，核心，易错题。

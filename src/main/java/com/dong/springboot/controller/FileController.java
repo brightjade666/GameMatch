@@ -13,7 +13,7 @@ import java.util.UUID;
 @RequestMapping("/file")
 public class FileController {
 
-    // ✅ 修复这里！！！
+    // 鉁?淇杩欓噷锛侊紒锛?
     @PostMapping("/upload")
     public String upload(@RequestParam("file") MultipartFile file) {
         try {
@@ -31,7 +31,7 @@ public class FileController {
             return "/upload/" + uuidFileName;
         } catch (Exception e) {
             e.printStackTrace();
-            return "上传失败";
+            return "涓婁紶澶辫触";
         }
     }
 }
