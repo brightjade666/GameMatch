@@ -1,0 +1,18 @@
+# IDE and operating system files
+.idea/
+.vscode/
+.vs/
+*.iml
+.DS_Store
+
+# Local configuration and logs
+.env
+.env.local
+*.log
+
+# Backend build and runtime files
+**/target/
+**/upload/
+
+# Frontend dependencies
+**/node_modules/

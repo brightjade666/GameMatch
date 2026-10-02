@@ -4,7 +4,7 @@
 
 面向游戏玩家的组队、匹配与社交平台，覆盖用户匹配、队伍推荐、热门排行、即时聊天和后台管理等完整业务流程。
 
-[后端代码](https://github.com/brightjade666/git_test/tree/dev) · [前端代码](https://github.com/brightjade666/git_test/tree/front-end) · [接口文档](docs/接口文档.md) · [Postman 集合](postman/gamematch.postman_collection.json)
+[后端代码](backend/) · [前端代码](frontend/) · [数据库脚本](database/game_team_match_DB.sql) · [接口文档](docs/接口文档.md) · [Postman 集合](postman/gamematch.postman_collection.json)
 
 </div>
 
@@ -42,14 +42,17 @@
 
 ## 项目结构
 
-仓库按分支维护，`main` 作为简历和项目总览入口：
+项目采用 Monorepo 结构，默认 `main` 分支包含完整源码：
 
-| 分支 | 内容 |
-| --- | --- |
-| `main` | 项目介绍、接口文档和 Postman 测试资源 |
-| `dev` | Spring Boot 后端源码 |
-| `front-end` | Express 静态前端源码 |
-| `DataBase` | 数据库初始化脚本 |
+```text
+git_test/
+├── backend/          Spring Boot 后端
+├── frontend/         Express 前端
+├── database/         MySQL 初始化脚本
+├── docs/             接口文档
+├── postman/          Postman 集合与环境
+└── README.md         项目总览
+```
 
 ## 核心链路
 
@@ -75,25 +78,25 @@ flowchart LR
 - Redis 6+
 - Node.js 18+
 
-从 `DataBase` 分支导入数据库脚本，并创建数据库 `sprintpro_db`。
+执行 [`database/game_team_match_DB.sql`](database/game_team_match_DB.sql)，脚本会创建并初始化数据库 `game_team_match`。
 
 ### 2. 启动后端
 
 ```powershell
-git switch dev
+cd backend
 $env:DB_PASSWORD="你的 MySQL 密码"
 $env:JWT_SECRET="至少 32 位的随机字符串"
 .\mvnw.cmd spring-boot:run
 ```
 
-如需使用 AI 对话功能，额外配置 `DOUBAO_API_KEY` 和 `DOUBAO_ENDPOINT_ID`。完整变量见 `dev` 分支的 `.env.example`。
+如需使用 AI 对话功能，额外配置 `DOUBAO_API_KEY` 和 `DOUBAO_ENDPOINT_ID`。完整变量见 [`backend/.env.example`](backend/.env.example)。
 
 后端默认地址：`http://localhost:8081`
 
 ### 3. 启动前端
 
 ```powershell
-git switch front-end
+cd frontend
 npm install
 npm start
 ```
