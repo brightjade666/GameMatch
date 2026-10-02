@@ -1,108 +1,122 @@
-# GameMatch 项目总览
+<div align="center">
 
-GameMatch 是一个面向游戏社交与组队匹配场景的前后端分离项目。
+# GameMatch 游戏队友匹配平台
 
-`main` 分支用于放置项目说明和仓库导航信息，不直接承载前后端实现代码。  
-实际开发与运行请进入对应业务分支。
+面向游戏玩家的组队、匹配与社交平台，覆盖用户匹配、队伍推荐、热门排行、即时聊天和后台管理等完整业务流程。
 
-## 分支说明
+[后端代码](https://github.com/brightjade666/git_test/tree/dev) · [前端代码](https://github.com/brightjade666/git_test/tree/front-end) · [接口文档](docs/接口文档.md) · [Postman 集合](postman/gamematch.postman_collection.json)
 
-| 分支 | 用途 | 技术栈 |
-| --- | --- | --- |
-| `main` | 项目总览、使用说明、仓库入口 | Markdown |
-| `dev` | 后端服务 | Spring Boot、JPA、MySQL、Java 17 |
-| `front-end` | 前端应用 | Express、Pug、Node.js |
+</div>
 
-## 项目功能
+## 项目亮点
 
-当前项目主要包含以下功能：
+- **双 Token 认证**：基于 Spring Security、JWT 和 Redis 实现 AccessToken/RefreshToken、无感刷新、主动退出及登录版本控制。
+- **Redis 热门队伍排行榜**：使用 ZSet 保存队伍热度，采用 `ZINCRBY` 原子增量更新、Top N 查询和定时任务校准 MySQL 数据。
+- **多级缓存治理**：队伍详情使用 Caffeine + Redis，结合随机 TTL、空值缓存、互斥锁、布隆过滤器和逻辑过期应对缓存穿透、击穿与雪崩。
+- **队伍推荐**：按照用户游戏偏好，从 Redis 热门候选队伍中排除已满、已加入和本人创建的队伍，并按热度返回推荐结果。
+- **MyBatis-Plus 改造**：使用 BaseMapper 处理通用 CRUD，复杂关联查询通过 Mapper XML 和自定义结果映射完成。
+- **AOP 日志与耗时统计**：通过自定义注解统一记录关键业务操作和方法执行时间，降低日志代码对业务逻辑的侵入。
+- **前后端认证联动**：前端统一封装请求层，自动携带 AccessToken，在 401 后刷新双 Token并重试原请求。
 
-- 用户注册与登录
-- 用户资料与公开信息展示
-- 战队招募与战队管理
-- 好友申请与好友列表管理
-- 私聊与战队聊天
-- 通知管理
-- 管理员端管理能力
-- AI 聊天能力
-- 文件上传
+## 功能模块
 
-## 后端运行方式
+| 模块 | 已实现功能 |
+| --- | --- |
+| 认证授权 | 注册、登录、双 Token 刷新、退出登录、管理员权限控制 |
+| 用户中心 | 资料维护、公开资料、个性化用户匹配 |
+| 队伍系统 | 发布、详情、申请、审批、退出、解散、成员管理 |
+| 推荐排行 | 热门队伍 Top N、队伍排名、按游戏偏好推荐队伍 |
+| 社交互动 | 好友申请、好友管理、私聊、队伍聊天、未读数 |
+| 平台能力 | 文件上传、AI 对话、通知、管理员后台 |
 
-切换到后端分支：
+## 技术栈
 
-```bash
-git checkout dev
+| 层次 | 技术 |
+| --- | --- |
+| 后端 | Java 17、Spring Boot 3、Spring Security、Spring AOP |
+| 数据访问 | MyBatis-Plus、Mapper XML、MySQL 8 |
+| 缓存 | Redis、Caffeine、Redis Bitmap 布隆过滤器 |
+| 认证 | JWT、AccessToken + RefreshToken、Redis 登录版本 |
+| 前端 | Express 4、原生 HTML/CSS/JavaScript、Fetch API |
+| 工具 | Maven、Postman、Springdoc OpenAPI |
+
+## 项目结构
+
+仓库按分支维护，`main` 作为简历和项目总览入口：
+
+| 分支 | 内容 |
+| --- | --- |
+| `main` | 项目介绍、接口文档和 Postman 测试资源 |
+| `dev` | Spring Boot 后端源码 |
+| `front-end` | Express 静态前端源码 |
+| `DataBase` | 数据库初始化脚本 |
+
+## 核心链路
+
+```mermaid
+flowchart LR
+    Browser[前端页面] -->|Bearer AccessToken| Security[Spring Security]
+    Security --> Controller[Controller]
+    Controller --> Service[业务服务]
+    Service --> MyBatis[MyBatis-Plus]
+    MyBatis --> MySQL[(MySQL)]
+    Service <--> Redis[(Redis)]
+    Service <--> Caffeine[(Caffeine)]
 ```
 
-后端默认端口：
+登录成功后，后端签发短期 AccessToken 和长期 RefreshToken。业务请求由 Spring Security 校验 AccessToken 及 Redis 中的登录版本；AccessToken 过期时，前端使用 RefreshToken 换取新的双 Token并自动重试请求。
 
-```text
-8081
-```
+## 本地运行
 
-本地启动命令：
+### 1. 准备环境
+
+- JDK 17
+- MySQL 8
+- Redis 6+
+- Node.js 18+
+
+从 `DataBase` 分支导入数据库脚本，并创建数据库 `sprintpro_db`。
+
+### 2. 启动后端
 
 ```powershell
-.\mvnw.cmd compile
+git switch dev
+$env:DB_PASSWORD="你的 MySQL 密码"
+$env:JWT_SECRET="至少 32 位的随机字符串"
 .\mvnw.cmd spring-boot:run
 ```
 
-后端运行依赖：
+如需使用 AI 对话功能，额外配置 `DOUBAO_API_KEY` 和 `DOUBAO_ENDPOINT_ID`。完整变量见 `dev` 分支的 `.env.example`。
 
-- Java 17
-- MySQL
-- 本地数据库 `sprintpro_db`
+后端默认地址：`http://localhost:8081`
 
-当前后端数据库默认配置：
+### 3. 启动前端
 
-```text
-jdbc:mysql://localhost:3306/sprintpro_db
-username: root
-```
-
-## 前端运行方式
-
-切换到前端分支：
-
-```bash
-git checkout front-end
-```
-
-前端默认端口：
-
-```text
-3000
-```
-
-本地启动命令：
-
-```bash
+```powershell
+git switch front-end
 npm install
 npm start
 ```
 
-前端主要技术：
+浏览器访问：`http://localhost:3000/login.html`
 
-- Express 4
-- Pug
-- Morgan
-- Cookie Parser
+## 接口与测试
 
-## 本地联调建议
+- 接口说明：[docs/接口文档.md](docs/接口文档.md)
+- Postman 集合：[postman/gamematch.postman_collection.json](postman/gamematch.postman_collection.json)
+- Postman 环境：[postman/gamematch.postman_environment.json](postman/gamematch.postman_environment.json)
+- Swagger UI：后端启动后访问 `http://localhost:8081/swagger-ui/index.html`
 
-1. 先在 `dev` 分支启动后端服务。
-2. 再在 `front-end` 分支启动前端服务。
-3. 浏览器访问 `http://localhost:3000`。
-4. 前端对接后端地址 `http://localhost:8081`。
+除注册、登录和 Token 刷新等白名单接口外，业务接口需要携带：
 
-## 当前仓库状态
+```http
+Authorization: Bearer <accessToken>
+```
 
-- `dev` 分支已放置后端项目代码
-- `front-end` 分支已放置前端项目代码
-- `main` 分支仅保留项目说明与仓库导航
+## 配置安全
 
-## 说明
+数据库密码、JWT 密钥和第三方 API Key 均通过环境变量注入，不提交真实凭据。用于公开展示或部署时，应使用独立密钥并定期轮换。
 
-- 不建议把前后端代码直接混放在 `main` 分支
-- 日常功能开发请在 `dev` 和 `front-end` 分支中进行
+## 当前说明
+
+项目定位为个人实战与简历展示项目，目前已覆盖认证授权、关系型数据库、缓存治理、排行榜、推荐、AOP 和前后端联调等常见后端工程场景。
