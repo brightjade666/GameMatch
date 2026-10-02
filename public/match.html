@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>队友匹配</title>
+    <style>
+        body {
+            background: #f0f2f5;
+            font-family: 'Microsoft YaHei', sans-serif;
+            padding: 0;
+            margin: 0;
+        }
+
+        .top-bar {
+            height: auto; /* 让高度由内容撑开 */
+            min-height: 50px; /* 保证最小高度 */
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+
+        .back-btn {
+            padding: 6px 12px;
+            background: #0078d7;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none; /* 确保没有下划线 */
+        }
+
+        .top-bar h4 {
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+            flex: 1;
+        }
+
+        .match-wrapper {
+            max-width: 1000px;
+            margin: 30px auto;
+            display: flex;
+            gap: 30px;
+            padding: 0 20px;
+        }
+
+        .filter-panel {
+            width: 280px;
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+            .filter-panel h3 {
+                margin: 0 0 10px 0;
+                color: #333;
+                font-size: 18px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+        .filter-group label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .filter-group select, .filter-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+            background: #fafafa;
+            box-sizing: border-box;
+        }
+
+            .filter-group select:focus, .filter-group input:focus {
+                border-color: #0078d4;
+                background: white;
+            }
+
+        .time-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+            .time-row input {
+                flex: 1;
+            }
+
+        .match-btn {
+            background: linear-gradient(135deg, #0078d4, #005a9e);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(0,120,212,0.3);
+        }
+
+            .match-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 18px rgba(0,120,212,0.4);
+            }
+
+        .result-panel {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+
+            .result-panel h3 {
+                margin-top: 0;
+                color: #333;
+            }
+
+        .match-card {
+            display: flex;
+            align-items: center;
+            background: #f9fbfd;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 16px;
+            transition: 0.2s;
+            border: 1px solid #eee;
+        }
+
+            .match-card:hover {
+                box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+            }
+
+        .match-avatar {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 18px;
+            border: 2px solid #0078d4;
+        }
+
+        .match-info {
+            flex: 1;
+        }
+
+            .match-info .nick {
+                font-weight: bold;
+                font-size: 16px;
+                margin-bottom: 6px;
+            }
+
+            .match-info .game {
+                font-size: 13px;
+                color: #0078d4;
+                background: #e8f2ff;
+                display: inline-block;
+                padding: 2px 10px;
+                border-radius: 20px;
+                margin-right: 8px;
+            }
+
+            .match-info .time-badge {
+                font-size: 12px;
+                color: #666;
+                background: #f0f0f0;
+                padding: 2px 8px;
+                border-radius: 10px;
+            }
+
+        .match-score {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 20px;
+        }
+
+        .score-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: conic-gradient(#0078d4 0deg, #0078d4 calc(3.6deg * var(--p)), #e0e0e0 calc(3.6deg * var(--p)));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+            .score-circle::before {
+                content: '';
+                position: absolute;
+                width: 46px;
+                height: 46px;
+                background: white;
+                border-radius: 50%;
+            }
+
+        .score-value {
+            position: relative;
+            font-weight: bold;
+            color: #0078d4;
+            font-size: 14px;
+        }
+
+        .friend-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+
+            .friend-btn:hover {
+                background: #5a4bd1;
+            }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-size: 15px;
+        }
+
+        .progress-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            display: none;
+        }
+
+        .progress-box {
+            background: white;
+            border-radius: 16px;
+            padding: 30px 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            min-width: 300px;
+        }
+
+            .progress-box p {
+                margin-bottom: 20px;
+                font-weight: bold;
+                color: #333;
+            }
+
+        .progress-bar-bg {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #0078d4, #40c4ff);
+            border-radius: 10px;
+            animation: fillProgress 1.8s ease forwards;
+        }
+
+        @keyframes fillProgress {
+            0% {
+                width: 0;
+            }
+
+            80% {
+                width: 90%;
+            }
+
+            100% {
+                width: 100%;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 14px 24px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            animation: slideIn 0.4s ease;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+            pointer-events: none;
+        }
+
+        .toast-success {
+            background: #28a745;
+        }
+
+        .toast-error {
+            background: #dc3545;
+        }
+
+        .toast-info {
+            background: #0078d4;
+        }
+
+        .toast-hidden {
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .modal-overlay.show {
+                display: flex;
+            }
+
+        .modal-box {
+            background: #fff;
+            border-radius: 14px;
+            padding: 25px;
+            width: 400px;
+            max-width: 90vw;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .action-btn {
+            border: none;
+            border-radius: 6px;
+            padding: 8px 20px;
+            font-size: 13px;
+            cursor: pointer;
+            color: #fff;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: #0078d7;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <button class="back-btn" onclick="goBackToProfile()">← 返回</button>
+        <h4>队友匹配</h4>
+    </div>
+
+    <!-- 好友申请弹窗 -->
+    <div id="applyModal" class="modal-overlay">
+        <div class="modal-box" style="width:350px;">
+            <h4 style="margin-bottom:15px;">发送好友申请</h4>
+            <p style="font-size:14px;margin-bottom:10px;">向 <strong id="applyTargetName"></strong> 发送申请：</p>
+            <textarea id="applyReason" placeholder="请输入申请原因（选填）" style="width:100%;height:80px;padding:10px;border:1px solid #ddd;border-radius:8px;resize:vertical;"></textarea>
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:15px;">
+                <button class="action-btn" style="background:#ddd;color:#333;" onclick="document.getElementById('applyModal').classList.remove('show')">取消</button>
+                <button class="action-btn btn-primary" onclick="confirmApply()">发送</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="match-wrapper">
+        <div class="filter-panel">
+            <h3> 匹配筛选</h3>
+            <!-- 替换原有的游戏筛选部分 -->
+            <div class="filter-group">
+                <label>常玩游戏</label>
+                <select id="matchGame" class="form-control" onchange="handleMatchOtherGame(this.value)">
+                    <option value="王者荣耀">王者荣耀</option>
+                    <option value="英雄联盟">英雄联盟</option>
+                    <option value="和平精英">和平精英</option>
+                    <option value="原神">原神</option>
+                    <option value="CS:GO">CS:GO</option>
+                    <option value="Dota2">Dota2</option>
+                    <option value="Apex英雄">Apex英雄</option>
+                    <option value="守望先锋">守望先锋</option>
+                    <option value="我的世界">我的世界</option>
+                    <option value="光遇">光遇</option>
+                    <option value="其他">其他...</option>
+                </select>
+                <input type="text" id="matchGameOther" class="form-control" style="display:none; margin-top:10px;" placeholder="请输入游戏名称">
+            </div>
+            <div class="filter-group">
+                <label>游玩时段</label>
+                <div class="time-row">
+                    <input type="time" id="timeStart" value="18:00">
+                    <span>至</span>
+                    <input type="time" id="timeEnd" value="22:00">
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>匹配需求</label>
+                <select id="matchNeed">
+                    <option value="">不限</option>
+                    <option value="开黑上分">开黑上分</option>
+                    <option value="娱乐休闲">娱乐休闲</option>
+                    <option value="固定队友">固定队友</option>
+                    <option value="萌新带飞">萌新带飞</option>
+                    <option value="聊天交友">聊天交友</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>性格</label>
+                <select id="matchPersonality">
+                    <option value="">不限</option>
+                    <option value="稳健">稳健</option>
+                    <option value="活泼">活泼</option>
+                    <option value="话痨">话痨</option>
+                    <option value="安静">安静</option>
+                    <option value="佛系">佛系</option>
+                    <option value="好胜">好胜</option>
+                </select>
+            </div>
+            <button class="match-btn" id="startMatchBtn">🔍 开始匹配</button>
+        </div>
+        <div class="result-panel" id="resultContainer">
+            <h3>✨ 匹配结果</h3>
+            <div class="empty-state">选择条件后点击"开始匹配"</div>
+        </div>
+    </div>
+    <div id="progressModal" class="progress-modal">
+        <div class="progress-box">
+            <p>⏳ 正在为您匹配队友...</p>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        function goBackToProfile() {
+            localStorage.setItem('switchToProfile', 'true');
+            location.href = 'index.html';
+        }
+
+        window.onload = function () {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user || !user.user_id) {
+                showToast("请先登录", "error");
+                setTimeout(() => { location.href = 'login.html'; }, 1500);
+            }
+        };
+
+        function showToast(msg, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('toast-hidden');
+                setTimeout(() => toast.remove(), 400);
+            }, 2500);
+        }
+
+        // ========== 获取当前用户的好友ID集合 ==========
+        async function fetchFriendIdSet() {
+            const friendIds = new Set();
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser) return friendIds;
+            try {
+                const res = await fetch(`http://localhost:8081/friend/list?userId=${currentUser.user_id}`);
+                const data = await res.json();
+                if (data.code === 200 && data.data && Array.isArray(data.data)) {
+                    data.data.forEach(f => {
+                        const fid = f.userId || f.user_id || f.friendId || f.friend_id || f.id;
+                        if (fid) friendIds.add(Number(fid));
+                    });
+                }
+            } catch (e) {
+                console.warn('获取好友列表失败', e);
+            }
+            return friendIds;
+        }
+
+        const startMatchBtn = document.getElementById('startMatchBtn');
+        const resultContainer = document.getElementById('resultContainer');
+        const progressModal = document.getElementById('progressModal');
+
+        startMatchBtn.addEventListener('click', async () => {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser || !currentUser.user_id) {
+        showToast('请先登录', 'error');
+        return;
+    }
+    
+    // ========== 新增：校验游戏名称 ==========
+    const game = getMatchGameName();
+    if (!game) {
+        showToast('请选择游戏或输入自定义游戏名', 'error');
+        return;
+    }
+    // =====================================
+
+    const timeStart = document.getElementById('timeStart').value;
+    const timeEnd = document.getElementById('timeEnd').value;
+    const need = document.getElementById('matchNeed').value;
+    const personality = document.getElementById('matchPersonality').value;
+
+    progressModal.style.display = 'flex';
+    resultContainer.innerHTML = '<h3>✨ 匹配结果</h3><div class="empty-state">匹配中...</div>';
+
+    try {
+        const params = new URLSearchParams();
+        if (game) params.append('gameName', game);
+        if (timeStart) params.append('playtimeStart', timeStart);
+        if (timeEnd) params.append('playtimeEnd', timeEnd);
+        if (need) params.append('matchNeed', need);
+        if (personality) params.append('personality', personality);
+        params.append('excludeUserId', currentUser.user_id);
+
+        const res = await fetch(`http://localhost:8081/user/matchAdvanced?${params.toString()}`);
+        const result = await res.json();
+
+        const friendIdSet = await fetchFriendIdSet();
+        let filteredUsers = [];
+        if (result.code === 200 && result.data && result.data.length > 0) {
+            filteredUsers = result.data.filter(u => !friendIdSet.has(Number(u.userId)));
+        }
+
+        setTimeout(() => {
+            progressModal.style.display = 'none';
+            if (filteredUsers.length > 0) {
+                renderMatchResults(filteredUsers);
+            } else {
+                resultContainer.innerHTML = '<h3>✨ 匹配结果</h3><div class="empty-state">😔 没有找到合适的队友（已过滤好友），试试调整条件吧</div>';
+            }
+        }, 1600);
+    } catch (err) {
+        setTimeout(() => {
+            progressModal.style.display = 'none';
+            resultContainer.innerHTML = '<h3>✨ 匹配结果</h3><div class="empty-state">❌ 匹配失败，请检查网络或后端</div>';
+        }, 1600);
+        console.error(err);
+    }
+});
+
+        function renderMatchResults(users) {
+    let html = '<h3>✨ 匹配结果</h3>';
+    users.forEach(u => {
+        const score = u.matchScore || 75;
+        const avatar = u.avatar ? (u.avatar.startsWith('http') ? u.avatar : 'http://localhost:8081' + u.avatar) : 'https://ui-avatars.com/api/?name=User';
+        html += `
+            <div class="match-card">
+                <img class="match-avatar" src="${avatar}" onerror="this.src='https://ui-avatars.com/api/?name=User'">
+                <div class="match-info">
+                    <div class="nick">${u.username || '用户'}</div>
+                    <span class="game">${u.gameName || '未知游戏'}</span>
+                    <span class="time-badge">${u.playtime || ''}</span>
+                </div>
+                <div class="match-score">
+                    <div class="score-circle" style="--p:${score};">
+                        <span class="score-value">${score}%</span>
+                    </div>
+                    <span style="font-size:11px;color:#888;">匹配度</span>
+                </div>
+                <button class="friend-btn" onclick="showApplyDialog(${u.userId}, '${u.username || '用户'}')">➕ 好友申请</button>
+            </div>`;
+    });
+    resultContainer.innerHTML = html;
+}
+
+        let pendingToUserId = null;
+        function showApplyDialog(toUserId, nick) {
+            pendingToUserId = toUserId;
+            document.getElementById('applyTargetName').innerText = nick || `用户 ${toUserId}`;
+            document.getElementById('applyReason').value = '';
+            document.getElementById('applyModal').classList.add('show');
+        }
+
+        // 处理匹配页“其他”游戏选项
+        function handleMatchOtherGame(val) {
+            const otherInput = document.getElementById('matchGameOther');
+            if (val === '其他') {
+                otherInput.style.display = 'block';
+            } else {
+                otherInput.style.display = 'none';
+                otherInput.value = '';
+            }
+        }
+
+        // 获取最终游戏名称（下拉选“其他”时取自定义输入，否则取下拉值）
+        function getMatchGameName() {
+            const select = document.getElementById('matchGame');
+            if (select.value === '其他') {
+                return document.getElementById('matchGameOther').value.trim();
+            }
+            return select.value;
+        }
+
+        async function confirmApply() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser) { showToast('请先登录', 'error'); return; }
+            const reason = document.getElementById('applyReason').value.trim();
+            document.getElementById('applyModal').classList.remove('show');
+            if (!pendingToUserId) return;
+            try {
+                const res = await fetch(`http://localhost:8081/friend/apply?fromUserId=${currentUser.user_id}&toUserId=${pendingToUserId}&reason=${encodeURIComponent(reason)}`, { method: 'POST' });
+                const result = await res.json();
+                if (result.code === 200) showToast('申请已发送', 'success');
+                else showToast(result.msg || '申请失败', 'error');
+            } catch (e) { showToast('网络错误', 'error'); }
+        }
+    </script>
+</body>
+</html>

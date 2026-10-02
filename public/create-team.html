@@ -1,0 +1,347 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>发起组队</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .create-container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+
+        .page-title {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 24px;
+        }
+
+        .upload-box {
+            width: 120px;
+            height: 120px;
+            border: 2px dashed #0078d4;
+            border-radius: 16px;
+            margin: 0 auto 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            background: #f0f8ff;
+            color: #0078d4;
+            transition: all 0.3s ease;
+        }
+
+            .upload-box:hover {
+                background: #e6f2ff;
+                transform: scale(1.02);
+            }
+
+            .upload-box img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                position: absolute;
+                top: 0;
+                left: 0;
+                display: none;
+            }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+                color: #555;
+                font-size: 14px;
+            }
+
+        .req {
+            color: red;
+            margin-left: 4px;
+            font-weight: bold;
+        }
+        /* 新增必填星号样式 */
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+
+            .form-control:focus {
+                border-color: #0078d4;
+                outline: none;
+                background: #fff;
+                box-shadow: 0 0 0 4px rgba(0,120,212,0.1);
+            }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #0078d4, #005a9e);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,120,212,0.3);
+            margin-top: 10px;
+        }
+
+            .btn-submit:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0,120,212,0.4);
+            }
+
+        .btn-cancel {
+            width: 100%;
+            padding: 12px;
+            background: none;
+            border: none;
+            color: #999;
+            margin-top: 15px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+            .btn-cancel:hover {
+                color: #666;
+                text-decoration: underline;
+            }
+
+        /* ========== Toast 固定右上角 ========== */
+        .toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 14px 24px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            animation: slideIn 0.4s ease;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+            pointer-events: none;
+        }
+
+        .toast-success {
+            background: #28a745;
+        }
+
+        .toast-error {
+            background: #dc3545;
+        }
+
+        .toast-info {
+            background: #0078d4;
+        }
+
+        .toast-hidden {
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="create-container">
+        <h2 class="page-title"> 发起新队伍</h2>
+
+        <div class="upload-box" onclick="document.getElementById('team-cover-input').click()">
+            <img id="team-cover-pre" src="">
+            <span id="cover-plus-icon" style="font-size: 28px; font-weight: bold;">+</span>
+            <span id="cover-text" style="font-size: 13px; margin-top: 5px;">上传封面(选填)</span>
+        </div>
+        <input type="file" id="team-cover-input" accept="image/*" onchange="previewCover(event)" style="display: none;">
+
+        <div class="form-group">
+            <label>队伍名称 <span class="req">*</span></label>
+            <input type="text" id="team-title" class="form-control" placeholder="给队伍起个响亮的名字（必填）">
+        </div>
+        <!-- 表单部分修改 -->
+        <div class="form-group">
+            <label>游戏类型 <span class="req">*</span></label>
+            <select id="team-need-select" class="form-control" onchange="handleOtherGame(this.value)">
+                <option value="">-- 请选择游戏 --</option>
+                <option value="王者荣耀">王者荣耀</option>
+                <option value="英雄联盟">英雄联盟</option>
+                <option value="和平精英">和平精英</option>
+                <option value="原神">原神</option>
+                <option value="CS:GO">CS:GO</option>
+                <option value="Dota2">Dota2</option>
+                <option value="Apex英雄">Apex英雄</option>
+                <option value="守望先锋">守望先锋</option>
+                <option value="我的世界">我的世界</option>
+                <option value="光遇">光遇</option>
+                <option value="其他">其他...</option>
+            </select>
+            <input type="text" id="team-need-other" class="form-control" style="display:none; margin-top:10px;" placeholder="请输入游戏名称">
+        </div>
+        <div class="form-group">
+            <label>项目简介</label>
+            <textarea id="team-desc" class="form-control" placeholder="详细介绍一下你的项目和目标，吸引更多伙伴..."></textarea>
+        </div>
+
+        <button class="btn-submit" onclick="doPublish()">立 即 发 布</button>
+        <!-- ========== 修改：取消按钮 → 返回"我的"界面 ========== -->
+        <button class="btn-cancel" onclick="goBackToProfile()">取消</button>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        // ========== 新增：返回"我的"界面 ==========
+        function goBackToProfile() {
+            localStorage.setItem('switchToProfile', 'true');
+            location.href = 'index.html';
+        }
+
+        // create-team.html 的 <script> 最前面插入
+        window.onload = function () {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user || !user.user_id) {
+                showToast("请先登录", "error");
+                setTimeout(() => { location.href = 'login.html'; }, 1500);
+            }
+        };
+        // 独立 Toast
+        function showToast(msg, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('toast-hidden');
+                setTimeout(() => toast.remove(), 400);
+            }, 2500);
+        }
+
+        let coverPath = "";
+
+        async function previewCover(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            let formData = new FormData();
+            formData.append("file", file);
+            try {
+                let res = await fetch("http://localhost:8081/file/upload", { method: "POST", body: formData });
+                let path = await res.text();
+                coverPath = path;
+                let img = document.getElementById("team-cover-pre");
+                img.src = "http://localhost:8081" + coverPath;
+                img.style.display = "block";
+                document.getElementById("cover-plus-icon").style.display = "none";
+                document.getElementById("cover-text").style.display = "none";
+            } catch (err) {
+                console.error(err);
+                showToast("封面上传失败", "error");
+            }
+        }
+
+        function handleOtherGame(val) {
+            const otherInput = document.getElementById("team-need-other");
+            otherInput.style.display = val === "其他" ? "block" : "none";
+            if (val !== "其他") otherInput.value = "";
+        }
+
+        async function doPublish() {
+            const title = document.getElementById("team-title").value.trim();
+            if (!title) {
+                showToast("请输入队伍名称！", "error");
+                return;
+            }
+
+            // 获取游戏选择
+            const selectEl = document.getElementById("team-need-select");
+            const otherEl = document.getElementById("team-need-other");
+            let need = selectEl.value;
+            if (need === "其他") {
+                need = otherEl.value.trim();
+                if (!need) {
+                    showToast("请输入游戏名称！", "error");
+                    return;
+                }
+            }
+            if (!need) {
+                showToast("请选择游戏！", "error");
+                return;
+            }
+
+            const user = JSON.parse(localStorage.getItem("currentUser"));
+            if (!user || !user.user_id) {
+                showToast("请先登录！", "error");
+                return;
+            }
+
+            const postData = {
+                gameId: 1, // 固定值可忽略
+                teamName: title,
+                teamNeed: need,   // 直接使用选中的或输入的游戏名
+                teamDesc: document.getElementById("team-desc").value.trim() || "无",
+                teamCover: coverPath || "",
+                leaderId: user.user_id,
+                needNum: 5,
+                currentNum: 1
+            };
+
+            try {
+                let res = await fetch("http://localhost:8081/team/publish", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(postData)
+                });
+                let result = await res.json();
+                if (result.code === 200) {
+                    showToast("发布成功！", "success");
+                    localStorage.setItem('switchToProfile', 'true');
+                    setTimeout(() => { location.href = "index.html"; }, 800);
+                } else {
+                    showToast("失败：" + result.msg, "error");
+                }
+            } catch (e) {
+                showToast("服务器未启动！", "error");
+            }
+        }
+    </script>
+</body>
+</html>
