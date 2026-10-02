@@ -608,8 +608,8 @@ function showReasonDetail(reason) {
     document.body.appendChild(overlay);
 }
 function logout() {
-    showConfirm('确定退出登录吗？', () => {
-        localStorage.clear();
+    showConfirm('确定退出登录吗？', async () => {
+        await GameMatchApi.logout();
         location.href = 'login.html';
     });
 }

@@ -337,6 +337,7 @@
         </div>
     </div>
 
+    <script src="api.js"></script>
     <script>
         // ========== 页面加载时自动检查 ==========
         window.onload = function () {
@@ -454,14 +455,8 @@
                 if (result.code === 200) {
                     showToast(result.msg, 'success');
 
-                    // 保存基础信息（包含 role） ★ 这是管理员判断的关键
-                    const basicInfo = {
-                        user_id: result.user_id,
-                        username: result.username,
-                        role: result.role,
-                        token: result.token
-                    };
-                    localStorage.setItem("currentUser", JSON.stringify(basicInfo));
+                    // 同时保存用户信息与双 Token，兼容旧页面使用的 user_id/token 字段。
+                    GameMatchApi.saveLoginSession(result);
 
                     // ★ 管理员直接进后台，不等资料拉取
                     if (result.role === 9) {
@@ -474,8 +469,7 @@
                         const infoRes = await fetch(`http://localhost:8081/user/info?userId=${result.user_id}`);
                         const infoData = await infoRes.json();
                         if (infoData.code === 200 && infoData.data) {
-                            localStorage.setItem("currentUser", JSON.stringify(infoData.data));
-                            const u = infoData.data;
+                            const u = GameMatchApi.saveLoginSession(result, infoData.data);
                             const requiredFields = ['nick', 'age', 'game_name', 'personality', 'playtime', 'matchneed', 'contact'];
                             const incomplete = requiredFields.some(f => {
                                 const val = u[f];
